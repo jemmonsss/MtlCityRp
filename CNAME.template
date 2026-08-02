@@ -1,0 +1,19 @@
+# Custom Domain Support Template for GitHub Pages
+# =================================================================
+# INSTRUCTIONS FOR ADDING A CUSTOM DOMAIN IN THE FUTURE:
+# 
+# 1. When you purchase your custom domain (e.g. www.mtlcityrp.com), 
+#    rename this file from 'CNAME.template' to simply 'CNAME' (with no extension).
+# 2. Open the file and replace the commented lines below with ONLY your domain name on line 1:
+# 
+# mtlcityrp.com
+# 
+# 3. In your DNS provider (GoDaddy, Namecheap, Cloudflare, etc.), configure:
+#    - A Records pointing to GitHub Pages IP addresses:
+#      185.199.108.153
+#      185.199.109.153
+#      185.199.110.153
+#      185.199.111.153
+#    - CNAME Record for 'www' pointing to yourusername.github.io.
+# 4. In your GitHub Repository, go to Settings -> Pages, confirm your custom domain, and check "Enforce HTTPS".
+# =================================================================

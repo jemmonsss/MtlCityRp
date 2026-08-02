@@ -1,0 +1,153 @@
+---
+layout: default
+title: "Home"
+---
+
+<!-- Hero Banner Section -->
+<section class="hero-section">
+  <div class="container">
+    <div class="hero-content">
+      <div id="fivem-status-indicator" class="status-badge">
+        <span class="pulse-circle"></span> Live FiveM Server - Join Code: XEODPE
+      </div>
+      
+      <h1 class="hero-title">
+        WELCOME TO <span class="highlight">MTL CITY RP</span>
+      </h1>
+      
+      <p class="hero-subtitle">
+        Experience the pinnacle of immersive FiveM roleplay and development. Featuring bespoke in-house MTL-Scripts, custom YMAP environments, advanced police systems, and an elite roleplaying community.
+      </p>
+
+      <div class="hero-actions">
+        <a href="https://{{ site.fivem_join_link }}" class="btn-connect js-connect-btn" style="font-size: 1.1rem; padding: 16px 36px;">
+          ⚡ Connect to Los Santos
+        </a>
+        <a href="https://mtl-city.tebex.io/" target="_blank" class="btn-secondary" style="padding: 16px 32px; border-color: #ff1a40;">
+          🛒 Visit Official Tebex Store
+        </a>
+      </div>
+
+      <!-- Realtime Auto-Updating Server Matrix Card (Pulls directly from FiveM Live API!) -->
+      <div class="server-status-card" id="live-server-preview-card">
+        <div class="server-banner-container">
+          <img id="fivem-dynamic-banner" src="https://forum.cfx.re/user_avatar/forum.cfx.re/mtlcity/144/4891586_2.png" alt="MTL City Rp Live Banner">
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; text-align: left;">
+          <div>
+            <span class="section-tag" style="margin-bottom: 4px;">Live FiveM Protocol (cfx.re/join/xeodpe)</span>
+            <h3 id="fivem-players-count" style="font-size: 1.5rem; color: #fff; margin: 0;">
+              🎮 Loading Realtime Citizen Count...
+            </h3>
+            <p id="fivem-dynamic-desc" style="margin: 8px 0 0; font-size: 0.95rem; color: var(--text-secondary);">
+              Official MTL City Rp FiveM server. High performance, realistic RP, custom frameworks & zero tolerance for toxic play.
+            </p>
+          </div>
+          <a href="https://{{ site.fivem_join_link }}" class="btn-connect js-connect-btn" style="padding: 12px 28px;">
+            🚀 Join City Now
+          </a>
+        </div>
+
+        <div id="fivem-dynamic-tags" style="margin-top: 16px; text-align: left;">
+          <!-- Auto-populated server tags from FiveM configuration -->
+          <span class="server-tag-badge">#ROLEPLAY</span>
+          <span class="server-tag-badge">#CUSTOM SCRIPTS</span>
+          <span class="server-tag-badge">#YMAPS</span>
+          <span class="server-tag-badge">#ECONOMY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Why Choose MTL City & MTL-Scripts Section -->
+<section class="features-section" style="padding: 80px 0;">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">Industry-Leading Mechanics</span>
+      <h2 class="section-title">Why Citizen Choose MTL City</h2>
+    </div>
+
+    <div class="features-grid">
+      <!-- Feature Card 1 -->
+      <div class="feature-card">
+        <div class="feature-icon">🛠️</div>
+        <h3>Bespoke MTL-Scripts & UIs</h3>
+        <p>
+          Renowned across the FiveM community for our cutting-edge internal scripts, dynamic AI transit mechanics, custom keybind managers, scoreboards, and sleek interactive UI displays.
+        </p>
+      </div>
+
+      <!-- Feature Card 2 -->
+      <div class="feature-card">
+        <div class="feature-icon">🗺️</div>
+        <h3>Custom YMAPS & Environments</h3>
+        <p>
+          Immerse yourself in deeply enhanced Los Santos maps. Explore our custom San Andreas vegetation expansions, bespoke architectural transit stations, and specialized gang interiors.
+        </p>
+      </div>
+
+      <!-- Feature Card 3 -->
+      <div class="feature-card">
+        <div class="feature-icon">🚓</div>
+        <h3>Advanced Police Systems</h3>
+        <p>
+          Equip law enforcement with realistic emergency tools! Featuring tactical police vehicle grappler scripts, integrated dispatch networks, and structured department progression.
+        </p>
+      </div>
+
+      <!-- Feature Card 4 (Store Highlight) -->
+      <div class="feature-card store-card">
+        <div class="feature-icon">💎</div>
+        <h3>Official Tebex Ecosystem</h3>
+        <p>
+          Looking to expand your experience or acquire our acclaimed MTL-Scripts for your custom setups? Browse our verified official store for instant resource delivery & dedicated developer support.
+        </p>
+        <a href="https://mtl-city.tebex.io/" target="_blank" style="display: inline-block; margin-top: 12px; font-weight: 700; color: #fff; text-decoration: underline;">
+          Explore mtl-city.tebex.io &rarr;
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Live Discord Interactive Roster & Status Matrix -->
+{% include discord_widget.html %}
+
+<!-- Team Roster Showcase -->
+<section id="team" class="team-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">The Architectural Roster</span>
+      <h2 class="section-title">Meet Our Leadership & Developers</h2>
+      <p style="max-width: 600px; margin: 24px auto 0;">
+        The experienced script developers, 3D clothing creators, map designers, and active community leads keeping MTL City at the absolute forefront of FiveM roleplay.
+      </p>
+    </div>
+
+    <div class="team-grid">
+      {% for person in site.data.team %}
+        {% include team_card.html member=person %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section style="padding: 100px 0; background: radial-gradient(circle at center, rgba(230, 0, 40, 0.25) 0%, transparent 60%); text-align: center; border-top: 1px solid rgba(255,255,255,0.05);">
+  <div class="container">
+    <h2 class="hero-title" style="font-size: 3rem; margin-bottom: 20px;">Ready To Claim Your Street?</h2>
+    <p style="max-width: 650px; margin: 0 auto 36px; font-size: 1.15rem;">
+      Connect directly to our Los Santos city servers via code <strong>xeodpe</strong> or join thousands of active members across our official Discord and Tebex platforms.
+    </p>
+    <div class="hero-actions">
+      <a href="https://{{ site.fivem_join_link }}" class="btn-connect js-connect-btn" style="font-size: 1.15rem; padding: 18px 40px;">
+        🚀 Connect via cfx.re/join/xeodpe
+      </a>
+      <a href="https://mtl-city.tebex.io/" target="_blank" class="btn-secondary" style="font-size: 1.15rem; padding: 18px 36px;">
+        🛒 MTL-Scripts Tebex
+      </a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,53 @@
+<section id="discord-hub" class="discord-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">Live Community Matrix</span>
+      <h2 class="section-title">Join The Discord City Hub</h2>
+    </div>
+
+    <div class="discord-layout">
+      <!-- Live Server Intelligence & Overview -->
+      <div class="discord-info">
+        <span class="status-badge" style="margin-bottom: 16px;">
+          <span class="pulse-circle"></span> Live Discord Feed
+        </span>
+        <h3 id="discord-server-title" style="font-size: 2rem; color: #fff; margin-bottom: 12px;">
+          MTL City Rp Official
+        </h3>
+        <p>
+          Stay connected with all active citizens, read announcement feeds, view emergency services dispatches, and get support directly from our developers and staff team in real-time.
+        </p>
+
+        <!-- Dynamic counters loaded via Discord Widget JSON API -->
+        <div class="discord-stat-grid">
+          <div class="stat-item">
+            <h4 id="discord-online-count" style="font-size: 1.25rem;">🟢 Loading Citizens...</h4>
+            <span>Realtime Active Members</span>
+          </div>
+          <div class="stat-item">
+            <h4>24/7</h4>
+            <span>Server Uptime & Support</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 16px; margin-top: 32px;">
+          <a id="discord-invite-btn" href="https://discord.gg/your-invite-link" target="_blank" class="btn-connect" style="width: 100%; justify-content: center;">
+            💬 Enter Official Discord
+          </a>
+        </div>
+      </div>
+
+      <!-- Official Discord Live Member Interactive Showcase Widget -->
+      <div class="discord-iframe-container">
+        <iframe 
+          src="https://discord.com/widget?id={{ site.discord_server_id }}&theme=dark" 
+          width="350" 
+          height="500" 
+          allowtransparency="true" 
+          frameborder="0" 
+          sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts">
+        </iframe>
+      </div>
+    </div>
+  </div>
+</section>

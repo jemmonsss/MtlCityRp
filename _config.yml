@@ -1,0 +1,53 @@
+# =================================================================
+# MTL City Rp - Jekyll Configuration
+# =================================================================
+
+title: "MTL City Rp"
+description: "The Premier FiveM Roleplay Experience. Custom scripts, immersive jobs, custom clothing, and an elite roleplaying community."
+url: "" # Leave empty for relative links, or populate with your domain later (e.g. "https://mtlcityrp.com" or "https://yourusername.github.io")
+baseurl: "" # Sub-path of your site on GitHub Pages if not using custom domain or user page (e.g. "/MtlCityRp" if hosted under a subdirectory)
+
+# Theme & Appearance
+color_theme: "black-and-red"
+discord_server_id: "1461098178169540763" # Live Discord Widget ID
+discord_invite_url: "https://discord.gg/1461098178169540763" # Official Discord server link
+fivem_join_code: "xeodpe" # Live FiveM Server ID for automatic API fetching
+fivem_join_link: "cfx.re/join/xeodpe" # Direct Connect URL
+tebex_store_url: "https://mtl-city.tebex.io/" # Official Scripts & Assets Store
+
+# Navigation Links
+navigation:
+  - title: "Home"
+    url: "/"
+  - title: "Server Status"
+    url: "/#discord-hub"
+  - title: "Team Roster"
+    url: "/#team"
+  - title: "City Rules"
+    url: "/rules.html"
+  - title: "Official Store"
+    url: "https://mtl-city.tebex.io/"
+    external: true
+
+# Jekyll & GitHub Pages Settings
+markdown: kramdown
+highlighter: rouge
+permalink: /:title.html
+
+# Exclude files from public build
+exclude:
+  - CNAME.template
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - .sass-cache
+  - .jekyll-cache
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+      author: "MTL City Rp Team"

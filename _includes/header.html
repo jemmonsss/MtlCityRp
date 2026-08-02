@@ -1,0 +1,21 @@
+<header class="site-header">
+  <div class="container nav-container">
+    <a href="{{ '/' | relative_url }}" class="brand-logo">
+      <span>MTL <span class="accent">CITY</span> RP</span>
+      <span class="brand-badge">FiveM</span>
+    </a>
+
+    <nav class="main-nav">
+      {% for item in site.navigation %}
+        <a href="{% if item.external %}{{ item.url }}{% else %}{{ item.url | relative_url }}{% endif %}" 
+           class="nav-link" 
+           {% if item.external %}target="_blank" rel="noopener noreferrer"{% endif %}>
+          {{ item.title }}
+        </a>
+      {% endfor %}
+      <a href="https://{{ site.fivem_join_link }}" class="btn-connect js-connect-btn" data-copy-only="false">
+        ⚡ Play Now (XEODPE)
+      </a>
+    </nav>
+  </div>
+</header>

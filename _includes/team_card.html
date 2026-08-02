@@ -1,0 +1,20 @@
+<div class="team-card">
+  <div class="avatar-container">
+    <img src="{{ include.member.image }}" alt="{{ include.member.name }}" loading="lazy" onerror="this.src='https://forum.cfx.re/user_avatar/forum.cfx.re/mtlcity/144/4891586_2.png'">
+  </div>
+  
+  <h3 class="team-name">{{ include.member.name }}</h3>
+
+  {% assign rank_class = "" %}
+  {% if include.member.rank == "Owner" %}
+    {% assign rank_class = "rank-owner" %}
+  {% elsif include.member.rank == "Co Owner" %}
+    {% assign rank_class = "rank-co-owner" %}
+  {% elsif include.member.rank == "Developer" %}
+    {% assign rank_class = "rank-developer" %}
+  {% elsif include.member.rank == "Clothing Developer" %}
+    {% assign rank_class = "rank-clothing-developer" %}
+  {% endif %}
+
+  <span class="rank-badge {{ rank_class }}">{{ include.member.rank }}</span>
+</div>

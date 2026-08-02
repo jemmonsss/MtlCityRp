@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if page.title %}{{ page.title }} | {{ site.title }}{% else %}{{ site.title }} - Official FiveM Roleplay Server{% endif %}</title>
+  <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
+  
+  <!-- SEO & OpenGraph Meta Tags for Discord & Social Embeds -->
+  <meta property="og:title" content="{% if page.title %}{{ page.title }} | {{ site.title }}{% else %}{{ site.title }} - Elite FiveM RP{% endif %}">
+  <meta property="og:description" content="{{ site.description }}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ page.url | absolute_url }}">
+  <meta name="theme-color" content="#e60028">
+
+  <!-- Favicon placeholder -->
+  <link rel="icon" href="https://forum.cfx.re/user_avatar/forum.cfx.re/mtlcity/144/4891586_2.png" type="image/png">
+
+  <!-- Custom Design System CSS -->
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+</head>
+<body>
+  <!-- Embedded Data IDs for JavaScript Live API integrations -->
+  <div id="discord-config-id" data-discord-id="{{ site.discord_server_id }}" style="display: none;"></div>
+  <div id="fivem-config-link" data-join-link="{{ site.fivem_join_link }}" data-join-code="{{ site.fivem_join_code }}" style="display: none;"></div>
+
+  <!-- Site Navigation Header -->
+  {% include header.html %}
+
+  <!-- Main Document Content Area -->
+  <main class="main-content">
+    {{ content }}
+  </main>
+
+  <!-- Site Footer -->
+  {% include footer.html %}
+
+  <!-- Client-Side JavaScript -->
+  <script src="{{ '/assets/js/main.js' | relative_url }}"></script>
+</body>
+</html>
