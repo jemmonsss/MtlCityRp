@@ -48,11 +48,22 @@
   },
   {
     "name": "Dylpiccl",
-    "image": "https://cdn.discordapp.com/attachments/1499105211090997339/1524599306714087555/vmXIL.jpg?ex=6a70a200&is=6a6f5080&hm=703c43a7b8b270163f0afe9021a656670cb46bf049c28bb38377799f3abd2892&",
+    "image": "https://postimg.cc/XZFSNsk0",
     "rank": "Developer",
     "snippet": "Full-stack FiveM Script & Mechanics Engineer.",
     "aboutMe": "Focusing on gameplay economy architecture, interactive heist mechanics, and continuous quality-of-life additions for all MTL City roles.",
-    "links": []
+    "links": [
+      {
+        "label": "Twitch",
+        "url": "https://www.twitch.tv/dylpickles2736",
+        "icon": "🎥"
+      },
+      {
+        "label": "TikTok",
+        "url": "https://www.tiktok.com/@dylpickles2736_16",
+        "icon": "📸"
+      }
+    ]
   },
   {
     "name": "Floorified",
