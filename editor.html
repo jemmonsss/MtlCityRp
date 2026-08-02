@@ -1,0 +1,446 @@
+---
+layout: default
+title: "Hidden Citizen Dossier & Profile Editor"
+description: "Internal team profile editor for generating custom team.json snippets."
+permalink: /editor.html
+---
+
+<div class="page-header">
+  <div class="container">
+    <span class="section-tag">INTERNAL TEAM UTILITY</span>
+    <h1 class="hero-title" style="font-size: clamp(2.2rem, 5vw, 3.8rem);">Citizen Profile <span class="highlight">Editor</span></h1>
+    <p class="hero-subtitle" style="margin-bottom: 0;">
+      Select your name from the dropdown below, modify your dossier, social links, or avatar, and copy the formatted JSON snippet to send directly to Joey!
+    </p>
+  </div>
+</div>
+
+<div class="container" style="max-width: 1100px; margin: 40px auto 80px;">
+  <div class="editor-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 32px; align-items: start;">
+    
+    <!-- Left Column: Interactive Editor Form -->
+    <div class="editor-card glass-panel" style="background: var(--glass-bg); border: 1px solid rgba(255, 26, 64, 0.35); border-radius: var(--radius-lg); padding: 36px; box-shadow: 0 15px 50px rgba(0,0,0,0.7);">
+      <h3 style="color: #fff; font-size: 1.4rem; margin-top: 0; margin-bottom: 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <span>✏️ Profile Configuration</span>
+        <button id="btn-preview-modal" class="btn-bio-trigger" style="width: auto; margin: 0; padding: 8px 16px;">👁️ Preview Bio Card</button>
+      </h3>
+
+      <div class="form-group" style="margin-bottom: 22px;">
+        <label for="select-member" class="editor-label">1. Select Team Member Roster Entry:</label>
+        <select id="select-member" class="editor-input editor-select" aria-label="Select Team Member to Edit">
+          <option value="">-- Loading Team Members... --</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label for="edit-name" class="editor-label">Citizen Display Name:</label>
+        <input type="text" id="edit-name" class="editor-input" placeholder="e.g. Dylpiccl">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label for="edit-rank" class="editor-label">City Rank / Official Title:</label>
+        <select id="edit-rank" class="editor-input editor-select">
+          <option value="Owner">Owner</option>
+          <option value="Co Owner">Co Owner</option>
+          <option value="Developer">Developer</option>
+          <option value="Clothing Developer">Clothing Developer</option>
+          <option value="Senior Lead">Senior Lead</option>
+          <option value="Community Support">Community Support</option>
+          <option value="Content Creator">Content Creator</option>
+          <option value="Custom Rank">-- Custom Title... --</option>
+        </select>
+        <input type="text" id="edit-rank-custom" class="editor-input" style="margin-top: 8px; display: none;" placeholder="Enter custom rank name...">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label for="edit-image" class="editor-label">Avatar Image URL:</label>
+        <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 8px;">
+          <div class="preview-avatar-box" style="width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--accent-primary); overflow: hidden; flex-shrink: 0; background: #111; box-shadow: 0 0 15px rgba(255, 26, 64, 0.4);">
+            <img id="avatar-live-preview" src="https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png" referrerpolicy="no-referrer" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <input type="url" id="edit-image" class="editor-input" style="flex-grow: 1;" placeholder="https://cdn.discordapp.com/avatars/...">
+        </div>
+        <small style="color: #ffb420; font-size: 0.8rem; line-height: 1.4; display: block;">
+          ⚠️ <em>Note: Direct Discord profile avatar links or CFX Forum URLs remain active indefinitely. Standard chat attachments from cdn.discordapp expire after 24h!</em>
+        </small>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label for="edit-snippet" class="editor-label">Homepage Card Snippet (Short Tagline):</label>
+        <textarea id="edit-snippet" class="editor-input" rows="2" placeholder="e.g. Full-stack FiveM Script & Mechanics Engineer."></textarea>
+        <small style="color: var(--text-muted); font-size: 0.78rem;">Displayed directly on your team card on the homepage.</small>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 26px;">
+        <label for="edit-about" class="editor-label">Expanded Citizen Dossier / About Me:</label>
+        <textarea id="edit-about" class="editor-input" rows="5" placeholder="Describe your responsibilities, backstory, or what you build for MTL City Rp..."></textarea>
+        <small style="color: var(--text-muted); font-size: 0.78rem;">Shown when citizens open your full interactive bio dossier modal.</small>
+      </div>
+
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+          <label class="editor-label" style="margin-bottom: 0;">🌐 Verified Socials & External Links:</label>
+          <button type="button" id="btn-add-link" class="btn-secondary" style="padding: 6px 14px; font-size: 0.78rem; text-transform: uppercase;">+ Add Link</button>
+        </div>
+        <div id="links-container" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Dynamic link inputs appended via JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Live JSON Preview & Copy Box -->
+    <div class="preview-card glass-panel" style="background: rgba(12, 12, 18, 0.98); border: 1px solid var(--accent-primary); border-radius: var(--radius-lg); padding: 36px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); position: sticky; top: 100px;">
+      <h3 style="color: #fff; font-size: 1.4rem; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+        <span>📦 Generated JSON Snippet</span>
+      </h3>
+      <p style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.5; margin-bottom: 22px;">
+        As you edit your profile on the left, this block formats your data instantly. When finished, click one of the copy buttons below and send the snippet straight to Joey!
+      </p>
+
+      <div style="position: relative; margin-bottom: 24px;">
+        <pre id="json-code-box" style="background: #08080e; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--radius-sm); padding: 22px; color: #00ff88; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9rem; overflow-x: auto; max-height: 420px; line-height: 1.6; tab-size: 2; margin: 0; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);"></pre>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <button id="btn-copy-individual" class="btn-connect" style="width: 100%; justify-content: center; font-size: 1rem; padding: 16px;">
+          📋 Copy Individual Profile Snippet (For Joey)
+        </button>
+        <button id="btn-copy-full" class="btn-secondary" style="width: 100%; justify-content: center; font-size: 0.92rem; padding: 14px;">
+          📑 Copy Entire Updated team.json Array
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .editor-label {
+    display: block;
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .editor-input {
+    width: 100%;
+    background: rgba(22, 22, 32, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 12px 16px;
+    transition: var(--transition-fast);
+    box-sizing: border-box;
+  }
+  .editor-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 15px var(--accent-glow);
+    background: rgba(30, 30, 42, 0.98);
+  }
+  .editor-select {
+    cursor: pointer;
+  }
+  .link-entry-row {
+    display: grid;
+    grid-template-columns: 70px 1fr 1.5fr auto;
+    gap: 10px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+  }
+  @media (max-width: 650px) {
+    .link-entry-row {
+      grid-template-columns: 1fr;
+    }
+  }
+  .btn-remove-link {
+    background: rgba(230, 0, 40, 0.25);
+    border: 1px solid rgba(230, 0, 40, 0.6);
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 800;
+    transition: var(--transition-fast);
+  }
+  .btn-remove-link:hover {
+    background: #ff1a40;
+    transform: scale(1.08);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+</style>
+
+<!-- Pass Jekyll team data to JavaScript -->
+<script>
+  window.MTL_TEAM_ROSTER = {{ site.data.team | jsonify }};
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const teamData = window.MTL_TEAM_ROSTER || [];
+  const selectEl = document.getElementById('select-member');
+  const nameInput = document.getElementById('edit-name');
+  const rankSelect = document.getElementById('edit-rank');
+  const rankCustomInput = document.getElementById('edit-rank-custom');
+  const imageInput = document.getElementById('edit-image');
+  const avatarPreview = document.getElementById('avatar-live-preview');
+  const snippetInput = document.getElementById('edit-snippet');
+  const aboutInput = document.getElementById('edit-about');
+  const linksContainer = document.getElementById('links-container');
+  const jsonBox = document.getElementById('json-code-box');
+  const addLinkBtn = document.getElementById('btn-add-link');
+  const previewModalBtn = document.getElementById('btn-preview-modal');
+  const copyIndivBtn = document.getElementById('btn-copy-individual');
+  const copyFullBtn = document.getElementById('btn-copy-full');
+
+  let currentSelectedIndex = 0;
+  let workingTeamArray = JSON.parse(JSON.stringify(teamData));
+
+  // Populate Dropdown
+  const populateDropdown = () => {
+    selectEl.innerHTML = '';
+    workingTeamArray.forEach((person, idx) => {
+      const opt = document.createElement('option');
+      opt.value = idx;
+      opt.textContent = `${person.name || 'Unnamed Citizen'} (${person.rank || 'Member'})`;
+      selectEl.appendChild(opt);
+    });
+    const newOpt = document.createElement('option');
+    newOpt.value = "NEW";
+    newOpt.textContent = "➕ Create New Roster Entry...";
+    newOpt.style.color = "#00ff88";
+    selectEl.appendChild(newOpt);
+    selectEl.value = currentSelectedIndex;
+  };
+
+  const renderLinks = (linksArray) => {
+    linksContainer.innerHTML = '';
+    if (!Array.isArray(linksArray) || linksArray.length === 0) {
+      linksContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 0.88rem; font-style: italic; padding: 8px 0;">No external social links attached yet. Click "+ Add Link" above!</div>`;
+      return;
+    }
+    linksArray.forEach((lnk, i) => {
+      const row = document.createElement('div');
+      row.className = 'link-entry-row';
+      row.innerHTML = `
+        <input type="text" class="editor-input link-icon-val" value="${lnk.icon || '🔗'}" title="Icon/Emoji" placeholder="Icon">
+        <input type="text" class="editor-input link-label-val" value="${lnk.label || lnk.name || 'Link Title'}" placeholder="Label (e.g. CFX Forum)">
+        <input type="url" class="editor-input link-url-val" value="${lnk.url || ''}" placeholder="https://...">
+        <button type="button" class="btn-remove-link" data-index="${i}" title="Remove Link">&times;</button>
+      `;
+      linksContainer.appendChild(row);
+    });
+
+    // Attach listeners for removal and updates
+    linksContainer.querySelectorAll('.btn-remove-link').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idxToRemove = parseInt(e.currentTarget.getAttribute('data-index'), 10);
+        const curMember = workingTeamArray[currentSelectedIndex];
+        if (curMember && curMember.links) {
+          curMember.links.splice(idxToRemove, 1);
+          renderLinks(curMember.links);
+          updateJsonPreview();
+        }
+      });
+    });
+
+    linksContainer.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', () => {
+        readLinksFromDOM();
+        updateJsonPreview();
+      });
+    });
+  };
+
+  const readLinksFromDOM = () => {
+    const rows = linksContainer.querySelectorAll('.link-entry-row');
+    const links = [];
+    rows.forEach(row => {
+      const icon = row.querySelector('.link-icon-val').value || '🔗';
+      const label = row.querySelector('.link-label-val').value || 'Link Title';
+      const url = row.querySelector('.link-url-val').value || '';
+      links.push({ label, url, icon });
+    });
+    if (workingTeamArray[currentSelectedIndex]) {
+      workingTeamArray[currentSelectedIndex].links = links;
+    }
+  };
+
+  const loadMemberIntoForm = (index) => {
+    if (index === "NEW") {
+      const newPerson = {
+        name: "New Citizen",
+        image: "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png",
+        rank: "Developer",
+        snippet: "Active contributor and team leader in Los Santos.",
+        aboutMe: "Dedicated citizen working on core server advancement, active moderation, and immersive storytelling across MTL City Rp.",
+        links: []
+      };
+      workingTeamArray.push(newPerson);
+      currentSelectedIndex = workingTeamArray.length - 1;
+      populateDropdown();
+      selectEl.value = currentSelectedIndex;
+      loadMemberIntoForm(currentSelectedIndex);
+      return;
+    }
+
+    currentSelectedIndex = parseInt(index, 10);
+    const person = workingTeamArray[currentSelectedIndex];
+    if (!person) return;
+
+    nameInput.value = person.name || '';
+    
+    // Check rank
+    const standardRanks = ["Owner", "Co Owner", "Developer", "Clothing Developer", "Senior Lead", "Community Support", "Content Creator"];
+    if (standardRanks.includes(person.rank)) {
+      rankSelect.value = person.rank;
+      rankCustomInput.style.display = "none";
+      rankCustomInput.value = "";
+    } else {
+      rankSelect.value = "Custom Rank";
+      rankCustomInput.style.display = "block";
+      rankCustomInput.value = person.rank || '';
+    }
+
+    imageInput.value = person.image || '';
+    avatarPreview.src = person.image || "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png";
+    avatarPreview.onerror = () => { avatarPreview.src = "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png"; };
+
+    snippetInput.value = person.snippet || '';
+    aboutInput.value = person.aboutMe || '';
+    renderLinks(person.links || []);
+    updateJsonPreview();
+  };
+
+  const updateJsonPreview = () => {
+    const person = workingTeamArray[currentSelectedIndex];
+    if (!person) return;
+
+    person.name = nameInput.value;
+    person.rank = rankSelect.value === "Custom Rank" ? (rankCustomInput.value || "Member") : rankSelect.value;
+    person.image = imageInput.value;
+    person.snippet = snippetInput.value;
+    person.aboutMe = aboutInput.value;
+
+    // Update avatar live box
+    if (avatarPreview.src !== imageInput.value) {
+      avatarPreview.src = imageInput.value || "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png";
+    }
+
+    jsonBox.textContent = JSON.stringify(person, null, 2);
+
+    // Refresh option title in dropdown
+    const opt = selectEl.querySelector(`option[value="${currentSelectedIndex}"]`);
+    if (opt) opt.textContent = `${person.name} (${person.rank})`;
+  };
+
+  // Event Listeners for Live Editing
+  selectEl.addEventListener('change', (e) => loadMemberIntoForm(e.target.value));
+  nameInput.addEventListener('input', updateJsonPreview);
+  imageInput.addEventListener('input', updateJsonPreview);
+  snippetInput.addEventListener('input', updateJsonPreview);
+  aboutInput.addEventListener('input', updateJsonPreview);
+
+  rankSelect.addEventListener('change', () => {
+    if (rankSelect.value === "Custom Rank") {
+      rankCustomInput.style.display = "block";
+    } else {
+      rankCustomInput.style.display = "none";
+    }
+    updateJsonPreview();
+  });
+  rankCustomInput.addEventListener('input', updateJsonPreview);
+
+  addLinkBtn.addEventListener('click', () => {
+    const cur = workingTeamArray[currentSelectedIndex];
+    if (!cur.links || !Array.isArray(cur.links)) cur.links = [];
+    cur.links.push({ icon: "🔗", label: "New Link", url: "https://" });
+    renderLinks(cur.links);
+    updateJsonPreview();
+  });
+
+  // Copy buttons with Toast notifications
+  copyIndivBtn.addEventListener('click', () => {
+    const text = jsonBox.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      if (typeof showNotification === 'function') {
+        showNotification("📋 Copied individual profile snippet! Ready to send to Joey.");
+      } else {
+        alert("Copied individual profile JSON snippet!");
+      }
+    }).catch(err => alert("Please select and copy the text inside the box."));
+  });
+
+  copyFullBtn.addEventListener('click', () => {
+    const fullJson = JSON.stringify(workingTeamArray, null, 2);
+    navigator.clipboard.writeText(fullJson).then(() => {
+      if (typeof showNotification === 'function') {
+        showNotification("📑 Copied entire updated team.json array to clipboard!");
+      } else {
+        alert("Copied complete team.json array!");
+      }
+    });
+  });
+
+  // Live Card Preview Trigger
+  previewModalBtn.addEventListener('click', () => {
+    const cur = workingTeamArray[currentSelectedIndex];
+    if (!cur) return;
+    
+    const modalOverlay = document.getElementById('citizen-bio-modal');
+    if (modalOverlay) {
+      const nameEl = document.getElementById('modal-bio-name');
+      const rankEl = document.getElementById('modal-bio-rank');
+      const imgEl = document.getElementById('modal-bio-image');
+      const textEl = document.getElementById('modal-bio-text');
+      const linksCont = document.getElementById('modal-links-container');
+      const linksGr = document.getElementById('modal-bio-links');
+
+      if (nameEl) nameEl.textContent = cur.name || 'Unnamed';
+      if (rankEl) { rankEl.textContent = cur.rank || 'Citizen'; rankEl.className = 'rank-badge'; }
+      if (imgEl) { imgEl.setAttribute('referrerpolicy', 'no-referrer'); imgEl.src = cur.image || "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png"; }
+      if (textEl) textEl.textContent = cur.aboutMe || cur.snippet || "No expanded dossier written yet.";
+
+      if (linksCont && linksGr) {
+        if (cur.links && cur.links.length > 0) {
+          linksGr.innerHTML = cur.links.map(l => `
+            <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="bio-social-link">
+              <span class="bio-link-icon">${l.icon || '🔗'}</span>
+              <span class="bio-link-text">${l.label || 'Link'}</span>
+              <span class="bio-link-arrow">&rarr;</span>
+            </a>
+          `).join("");
+          linksCont.style.display = "block";
+        } else {
+          linksCont.style.display = "none";
+        }
+      }
+
+      modalOverlay.classList.add('is-open');
+      modalOverlay.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch (err) {}
+    }
+  });
+
+  // Initialize form with first team member
+  populateDropdown();
+  if (workingTeamArray.length > 0) {
+    loadMemberIntoForm(0);
+  }
+});
+</script>
