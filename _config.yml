@@ -4,8 +4,8 @@
 
 title: "MTL City Rp"
 description: "The Premier FiveM Roleplay Experience. Custom scripts, immersive jobs, custom clothing, and an elite roleplaying community."
-url: "" # Leave empty for relative links, or populate with your domain later (e.g. "https://mtlcityrp.com" or "https://yourusername.github.io")
-baseurl: "" # Sub-path of your site on GitHub Pages if not using custom domain or user page (e.g. "/MtlCityRp" if hosted under a subdirectory)
+url: "https://jemmonsss.github.io"
+baseurl: "/MtlCityRp" # Sub-path of your site on GitHub Pages
 
 # Theme & Appearance
 color_theme: "black-and-red"
