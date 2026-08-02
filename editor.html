@@ -10,7 +10,7 @@ permalink: /editor.html
     <span class="section-tag">INTERNAL TEAM UTILITY</span>
     <h1 class="hero-title" style="font-size: clamp(2.2rem, 5vw, 3.8rem);">Citizen Profile <span class="highlight">Editor</span></h1>
     <p class="hero-subtitle" style="margin-bottom: 0;">
-      Select your name from the dropdown below, modify your dossier, social links, or avatar, and copy the formatted JSON snippet to send directly to Joey!
+      Select your name from the dropdown below, modify your dossier, social links, or avatar, and copy the formatted JSON snippet to send directly to J_emmons_07!
     </p>
   </div>
 </div>
@@ -95,7 +95,7 @@ permalink: /editor.html
         <span>📦 Generated JSON Snippet</span>
       </h3>
       <p style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.5; margin-bottom: 22px;">
-        As you edit your profile on the left, this block formats your data instantly. When finished, click one of the copy buttons below and send the snippet straight to Joey!
+        As you edit your profile on the left, this block formats your data instantly. When finished, click one of the copy buttons below and send the snippet straight to J_emmons_07!
       </p>
 
       <div style="position: relative; margin-bottom: 24px;">
@@ -104,7 +104,7 @@ permalink: /editor.html
 
       <div style="display: flex; flex-direction: column; gap: 16px;">
         <button id="btn-copy-individual" class="btn-connect" style="width: 100%; justify-content: center; font-size: 1rem; padding: 16px;">
-          📋 Copy Individual Profile Snippet (For Joey)
+          📋 Copy Individual Profile Snippet (For J_emmons_07)
         </button>
         <button id="btn-copy-full" class="btn-secondary" style="width: 100%; justify-content: center; font-size: 0.92rem; padding: 14px;">
           📑 Copy Entire Updated team.json Array
@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const text = jsonBox.textContent;
     navigator.clipboard.writeText(text).then(() => {
       if (typeof showNotification === 'function') {
-        showNotification("📋 Copied individual profile snippet! Ready to send to Joey.");
+        showNotification("📋 Copied individual profile snippet! Ready to send to J_emmons_07.");
       } else {
         alert("Copied individual profile JSON snippet!");
       }
