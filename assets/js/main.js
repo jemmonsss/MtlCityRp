@@ -343,7 +343,7 @@ function initCitizenBioModals() {
   const closeBtn = document.getElementById('close-bio-modal');
   const cards = document.querySelectorAll('.js-bio-card');
 
-  if (!modalOverlay || !cards.length) return;
+  if (!modalOverlay) return;
 
   const nameEl = document.getElementById('modal-bio-name');
   const rankEl = document.getElementById('modal-bio-rank');

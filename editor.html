@@ -434,6 +434,16 @@ document.addEventListener('DOMContentLoaded', () => {
       modalOverlay.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
       try { if (navigator.vibrate) navigator.vibrate(15); } catch (err) {}
+
+      // Explicit close bindings for editor live preview
+      const closeEditorModal = () => {
+        modalOverlay.classList.remove('is-open');
+        modalOverlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      };
+      const closeBtnEl = document.getElementById('close-bio-modal');
+      if (closeBtnEl) closeBtnEl.onclick = closeEditorModal;
+      modalOverlay.onclick = (e) => { if (e.target === modalOverlay) closeEditorModal(); };
     }
   });
 
