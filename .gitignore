@@ -1,0 +1,21 @@
+# Build outputs
+_site/
+.jekyll-cache/
+.sass-cache/
+.jekyll-metadata
+
+# Bundler / Gems
+.bundle/
+vendor/
+*.gem
+Gemfile.lock
+
+# OS metadata
+Thumbs.db
+.DS_Store
+
+# Temporary files
+scratch/
+.system_generated/
+*.tmp
+*.bak
