@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initFivemServerMonitor();
   initConnectButton();
   initSmoothNavigation();
+  initMobileNav();
+  initBackToTop();
+  initTouchEnhancements();
 });
 
 /**
@@ -185,6 +188,7 @@ function initConnectButton() {
 
   connectButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
+      try { if (navigator.vibrate) navigator.vibrate([30, 50, 30]); } catch (err) {}
       if (btn.getAttribute('data-copy-only') === "true") {
         e.preventDefault();
         navigator.clipboard.writeText(joinLink).then(() => {
@@ -255,5 +259,75 @@ function initSmoothNavigation() {
     if (currentPath === href || (href !== '/' && currentPath.includes(href))) {
       link.classList.add('active');
     }
+  });
+}
+
+/**
+ * Mobile Hamburger Navigation & Slide-out Drawer Controller
+ */
+function initMobileNav() {
+  const toggleBtn = document.getElementById('mobile-nav-toggle');
+  const navMenu = document.getElementById('main-navigation');
+  const overlay = document.getElementById('nav-overlay');
+  const navLinks = document.querySelectorAll('#main-navigation .nav-link, #main-navigation .btn-connect');
+
+  if (!toggleBtn || !navMenu || !overlay) return;
+
+  const toggleMenu = () => {
+    const isOpen = toggleBtn.classList.toggle('is-active');
+    navMenu.classList.toggle('is-open', isOpen);
+    overlay.classList.toggle('show', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    toggleBtn.setAttribute('aria-expanded', isOpen);
+  };
+
+  toggleBtn.addEventListener('click', toggleMenu);
+  overlay.addEventListener('click', toggleMenu);
+
+  navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (navMenu.classList.contains('is-open')) {
+        toggleMenu();
+      }
+    });
+  });
+}
+
+/**
+ * Interactive Back-to-Top Floating Button Controller
+ */
+function initBackToTop() {
+  const topBtn = document.getElementById('back-to-top-btn');
+  if (!topBtn) return;
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 350) {
+      topBtn.classList.add('visible');
+    } else {
+      topBtn.classList.remove('visible');
+    }
+  });
+
+  topBtn.addEventListener('click', () => {
+    try { if (navigator.vibrate) navigator.vibrate(20); } catch (err) {}
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+}
+
+/**
+ * Touchscreen & Mobile Gestures Support
+ */
+function initTouchEnhancements() {
+  const touchCards = document.querySelectorAll('.feature-card, .team-card, .server-status-card, .btn-connect');
+  touchCards.forEach(card => {
+    card.addEventListener('touchstart', () => {
+      card.classList.add('touch-active');
+    }, { passive: true });
+    card.addEventListener('touchend', () => {
+      setTimeout(() => card.classList.remove('touch-active'), 300);
+    }, { passive: true });
   });
 }

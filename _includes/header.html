@@ -5,7 +5,16 @@
       <span class="brand-badge">FiveM</span>
     </a>
 
-    <nav class="main-nav">
+    <!-- Mobile Hamburger Menu Button -->
+    <button id="mobile-nav-toggle" class="hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </button>
+
+    <!-- Navigation Overlay & Links -->
+    <div id="nav-overlay" class="nav-overlay"></div>
+    <nav class="main-nav" id="main-navigation">
       {% for item in site.navigation %}
         <a href="{% if item.external %}{{ item.url }}{% else %}{{ item.url | relative_url }}{% endif %}" 
            class="nav-link" 

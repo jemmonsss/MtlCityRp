@@ -715,24 +715,7 @@ a:hover {
   100% { transform: scale(0.95); opacity: 0; }
 }
 
-@media (max-width: 768px) {
-  .nav-container {
-    height: auto;
-    padding: 16px 0;
-    flex-direction: column;
-    gap: 16px;
-  }
-  
-  .main-nav {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-  }
-
-  .content-wrapper {
-    padding: 28px 20px;
-  }
-}
+/* Responsive layout adjustments consolidated in multi-resolution engine below */
 
 /* ==========================================================================
    Live Server Status Matrix & Dynamic Banner Cards (Auto-pull from FiveM API)
@@ -970,12 +953,331 @@ a:hover {
   animation: pulse 2s infinite;
 }
 
-@media (max-width: 768px) {
-  .content-wrapper {
-    padding: 30px 24px;
-    margin: 24px 12px;
+/* ==========================================================================
+   Hamburger Toggle Button & Mobile Navigation Drawer
+   ========================================================================== */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 38px;
+  height: 38px;
+  background: rgba(22, 22, 30, 0.7);
+  border: 1px solid rgba(255, 26, 64, 0.4);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  cursor: pointer;
+  z-index: 2000;
+  transition: var(--transition-fast);
+  box-shadow: 0 0 12px rgba(230, 0, 40, 0.25);
+}
+
+.hamburger-btn:hover, .hamburger-btn.is-active {
+  background: var(--accent-primary);
+  border-color: #fff;
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.hamburger-btn .bar {
+  width: 100%;
+  height: 2.5px;
+  background-color: #fff;
+  border-radius: 4px;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hamburger-btn.is-active .bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburger-btn.is-active .bar:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+.hamburger-btn.is-active .bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.nav-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(4, 4, 8, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.nav-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   Interactive Floating Back-to-Top Button & Tactile Touch Styles
+   ========================================================================== */
+.back-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: linear-gradient(135deg, rgba(22, 22, 30, 0.95), var(--accent-dark));
+  border: 1px solid var(--accent-primary);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 12px 18px;
+  border-radius: 50px;
+  cursor: pointer;
+  z-index: 990;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(230, 0, 40, 0.4);
+  backdrop-filter: blur(14px);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(30px) scale(0.9);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.back-to-top:hover {
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent-primary));
+  box-shadow: 0 0 30px var(--accent-glow);
+  transform: translateY(-4px) scale(1.05);
+}
+
+.touch-active {
+  transform: scale(0.97) !important;
+  border-color: #ff1a40 !important;
+  box-shadow: 0 0 35px var(--accent-glow) !important;
+  filter: brightness(1.1);
+}
+
+/* ==========================================================================
+   Comprehensive Multi-Resolution Scaling & Responsive Design Engine
+   ========================================================================== */
+
+/* Large Ultrawide Desktop Enhancements (1440px+) */
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1360px;
   }
+  .hero-title {
+    font-size: 5.5rem;
+  }
+  .features-grid, .team-grid {
+    gap: 40px;
+  }
+}
+
+/* Tablet & Medium Desktop Screens (max-width: 991px) */
+@media (max-width: 991px) {
+  .hamburger-btn {
+    display: flex;
+  }
+  
+  .nav-container {
+    height: 70px;
+    padding: 0 20px;
+  }
+
+  .main-nav {
+    position: fixed;
+    top: 70px;
+    right: -100%;
+    width: 320px;
+    max-width: 85vw;
+    height: calc(100vh - 70px);
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 24px;
+    background: rgba(14, 14, 20, 0.98);
+    border-left: 2px solid var(--accent-primary);
+    box-shadow: -15px 0 50px rgba(0, 0, 0, 0.95);
+    padding: 40px 30px;
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1000;
+    overflow-y: auto;
+  }
+
+  .main-nav.is-open {
+    right: 0;
+  }
+
+  .nav-link {
+    font-size: 1.15rem;
+    width: 100%;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
   .nav-status-pill {
+    margin: 10px 0 0;
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+  }
+
+  .btn-connect {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 24px;
+    font-size: 1rem;
+    margin-top: 10px;
+  }
+
+  .hero-section {
+    padding: 90px 0 70px;
+  }
+  
+  .hero-title {
+    font-size: clamp(2.4rem, 7vw, 3.8rem);
+  }
+
+  .features-grid, .team-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+/* Mobile Devices & Small Tablets (max-width: 768px) */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 18px;
+  }
+
+  .brand-logo {
+    font-size: 1.3rem;
+  }
+
+  .brand-badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+
+  .hero-subtitle {
+    font-size: 1.05rem;
+    padding: 0 10px;
+    margin-bottom: 28px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+    gap: 14px;
+  }
+
+  .hero-actions a, .hero-actions button {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .server-status-card {
+    padding: 24px 18px;
+    margin-top: 30px;
+  }
+
+  .server-status-card h3 {
+    font-size: 1.25rem !important;
+  }
+
+  .content-wrapper {
+    padding: 32px 22px;
+    margin: 30px auto;
+  }
+
+  .content-wrapper h2 {
+    font-size: 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 30px;
+  }
+
+  .footer-brand, .footer-disclaimer {
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .footer-actions {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+  
+  .footer-bottom div {
+    justify-content: center;
+  }
+
+  .back-to-top {
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 15px;
+  }
+}
+
+/* Compact Smartphones & Foldables (max-width: 480px) */
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: clamp(2rem, 8.5vw, 2.6rem);
+  }
+
+  .section-title {
+    font-size: 1.6rem;
+  }
+
+  .status-badge {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+  }
+
+  .team-card {
+    padding: 28px 16px 22px;
+  }
+
+  .penalty-table th, .penalty-table td {
+    padding: 12px 14px;
+    font-size: 0.88rem;
+  }
+
+  .badge-penalty {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+  }
+
+  .back-to-top span {
     display: none;
+  }
+  .back-to-top {
+    border-radius: 50%;
+    width: 46px;
+    height: 46px;
+    justify-content: center;
+    padding: 0;
   }
 }
