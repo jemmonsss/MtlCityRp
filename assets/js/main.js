@@ -48,14 +48,7 @@ async function initDiscordLiveStats() {
       animateValue(onlineCountEl, 0, data.presence_count, 1500, "Active Citizens Online in Discord", "💬");
     }
 
-    // Update connection button url to instant Discord invite if provided in widget
-    if (data.instant_invite) {
-      const inviteBtn = document.getElementById('discord-invite-btn');
-      if (inviteBtn) {
-        inviteBtn.setAttribute('href', data.instant_invite);
-        inviteBtn.setAttribute('target', '_blank');
-      }
-    }
+    // We maintain our official permanent invite link configured in _config.yml
   } catch (error) {
     console.error("Error fetching live Discord stats:", error);
     if (onlineCountEl) onlineCountEl.innerHTML = "🟢 <strong>Online</strong> Active Discord Hub";
