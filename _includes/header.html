@@ -13,6 +13,10 @@
           {{ item.title }}
         </a>
       {% endfor %}
+      <div class="nav-status-pill" title="Realtime FiveM Player Status">
+        <span class="pulse-circle"></span>
+        <span id="nav-player-counter">FiveM: Checking...</span>
+      </div>
       <a href="https://{{ site.fivem_join_link }}" class="btn-connect js-connect-btn" data-copy-only="false">
         ⚡ Play Now (XEODPE)
       </a>

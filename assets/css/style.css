@@ -807,3 +807,175 @@ a:hover {
   box-shadow: 0 0 35px rgba(255, 26, 64, 0.5) !important;
   transform: translateY(-8px) !important;
 }
+
+/* ==========================================================================
+   Live Server Navbar Status Pill & Player Monitors
+   ========================================================================== */
+.nav-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(22, 22, 30, 0.85);
+  border: 1px solid rgba(255, 26, 64, 0.35);
+  box-shadow: 0 0 15px rgba(230, 0, 40, 0.2);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: #fff;
+  white-space: nowrap;
+  margin-right: 12px;
+  backdrop-filter: blur(12px);
+  transition: var(--transition-fast);
+}
+
+.nav-status-pill:hover {
+  border-color: #ff1a40;
+  box-shadow: 0 0 22px rgba(255, 26, 64, 0.45);
+  transform: scale(1.02);
+}
+
+/* ==========================================================================
+   Rules & Regulations Documentation Styling & Penalty Tables
+   ========================================================================== */
+.page-header {
+  padding: 60px 0 40px;
+  background: radial-gradient(circle at center, rgba(230, 0, 40, 0.18) 0%, transparent 70%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: center;
+}
+
+.content-wrapper {
+  max-width: 960px;
+  margin: 50px auto;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 50px 60px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px);
+}
+
+.content-wrapper h2 {
+  font-size: 1.8rem;
+  color: #fff;
+  margin: 40px 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--accent-primary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.content-wrapper h3 {
+  font-size: 1.25rem;
+  color: #ffb3c1;
+  margin: 24px 0 12px;
+}
+
+.content-wrapper ul, .content-wrapper ol {
+  margin: 0 0 24px 24px;
+  color: var(--text-secondary);
+}
+
+.content-wrapper li {
+  margin-bottom: 10px;
+  line-height: 1.7;
+}
+
+.content-wrapper li strong {
+  color: #fff;
+}
+
+.penalty-table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin: 30px 0;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 26, 64, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.penalty-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  background: rgba(14, 14, 20, 0.95);
+}
+
+.penalty-table th {
+  background: rgba(230, 0, 40, 0.22);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 16px 24px;
+  border-bottom: 2px solid #ff1a40;
+}
+
+.penalty-table td {
+  padding: 15px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.98rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.penalty-table tbody tr {
+  transition: var(--transition-fast);
+}
+
+.penalty-table tbody tr:hover {
+  background: rgba(255, 26, 64, 0.08);
+}
+
+.penalty-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Severity Penalty Badges */
+.badge-penalty {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.badge-penalty.hours {
+  background: rgba(255, 180, 32, 0.18);
+  color: #ffb420;
+  border: 1px solid rgba(255, 180, 32, 0.4);
+}
+
+.badge-penalty.days {
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff5252;
+  border: 1px solid rgba(255, 68, 68, 0.5);
+}
+
+.badge-penalty.perm {
+  background: rgba(230, 0, 40, 0.35);
+  color: #ffffff;
+  border: 1px solid #ff1a40;
+  box-shadow: 0 0 15px rgba(255, 26, 64, 0.6);
+  animation: pulse 2s infinite;
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 30px 24px;
+    margin: 24px 12px;
+  }
+  .nav-status-pill {
+    display: none;
+  }
+}

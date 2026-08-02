@@ -65,36 +65,74 @@ async function initDiscordLiveStats() {
  */
 async function initFivemServerMonitor() {
   const fivemConfigEl = document.getElementById('fivem-config-link');
-  if (!fivemConfigEl) return;
-
-  const joinCode = fivemConfigEl.getAttribute('data-join-code') || "xeodpe";
+  const joinCode = fivemConfigEl ? (fivemConfigEl.getAttribute('data-join-code') || "xeodpe") : "xeodpe";
   const playersEl = document.getElementById('fivem-players-count');
   const bannerImgEl = document.getElementById('fivem-dynamic-banner');
   const tagsContainerEl = document.getElementById('fivem-dynamic-tags');
   const serverStatusBadge = document.getElementById('fivem-status-indicator');
+  const navPlayerCounter = document.getElementById('nav-player-counter');
+
+  const targetUrl = `https://servers-frontend.fivem.net/api/servers/single/${joinCode}`;
+  let server = null;
 
   try {
-    // Query official FiveM server details frontend API
-    const response = await fetch(`https://servers-frontend.fivem.net/api/servers/single/${joinCode}`);
-    if (!response.ok) {
-      if (playersEl) playersEl.innerHTML = "🟢 <strong>Join Code:</strong> " + joinCode.toUpperCase();
-      return;
+    // 1. Try Direct API Query
+    const res = await fetch(targetUrl);
+    if (res.ok) {
+      const json = await res.json();
+      server = json.Data;
     }
+  } catch (err) {
+    console.warn("Direct FiveM API fetch restricted by browser CORS, switching to fallback proxy...");
+  }
 
-    const json = await response.json();
-    const server = json.Data;
-    if (!server) return;
-
-    // 1. Dynamic Player Counter Update
-    if (playersEl && server.clients !== undefined && server.sv_maxclients !== undefined) {
-      playersEl.innerHTML = `🎮 <strong>${server.clients} / ${server.sv_maxclients}</strong> Citizens Playing Live`;
-      if (serverStatusBadge) {
-        serverStatusBadge.innerHTML = `<span class="pulse-circle"></span> ONLINE - ${server.clients} Players In City`;
+  // 2. CORS Proxy Fallback (Guarantees player counts load reliably across browsers and GitHub Pages)
+  if (!server) {
+    try {
+      const proxyRes = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`);
+      if (proxyRes.ok) {
+        const json = await proxyRes.json();
+        server = json.Data;
       }
+    } catch (proxyErr) {
+      console.warn("Primary proxy fallback timeout, trying backup tracker...");
+    }
+  }
+
+  // 3. Second Backup Proxy
+  if (!server) {
+    try {
+      const backupRes = await fetch(`https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`);
+      if (backupRes.ok) {
+        const json = await backupRes.json();
+        server = json.Data;
+      }
+    } catch (e) {
+      console.error("All Live FiveM API queries unreachable:", e);
+    }
+  }
+
+  // Handle successful data pull
+  if (server && server.clients !== undefined) {
+    const onlineCount = server.clients;
+    const maxCount = server.sv_maxclients || 64;
+
+    // Update global Top Navigation bar pill
+    if (navPlayerCounter) {
+      navPlayerCounter.innerHTML = `<strong>${onlineCount} / ${maxCount}</strong> Citizens Online`;
     }
 
-    // 2. Dynamic Banner Image Pull
-    // If the developers update their server banner on their end, it instantly reflects on the site!
+    // Update Hero Banner status indicator badge
+    if (serverStatusBadge) {
+      serverStatusBadge.innerHTML = `<span class="pulse-circle"></span> ONLINE - <strong>${onlineCount} Players</strong> Active In City`;
+    }
+
+    // Update Homepage matrix showcase card
+    if (playersEl) {
+      playersEl.innerHTML = `🎮 <strong>${onlineCount} / ${maxCount}</strong> Citizens Playing Live`;
+    }
+
+    // Dynamic Banner Image Pull
     const bannerUrl = server.vars?.banner_detail || server.vars?.banner_connecting || null;
     if (bannerUrl && bannerImgEl) {
       bannerImgEl.src = bannerUrl;
@@ -102,21 +140,21 @@ async function initFivemServerMonitor() {
       bannerImgEl.parentElement.classList.add('has-dynamic-banner');
     }
 
-    // 3. Dynamic Server Tags Display
+    // Dynamic Server Tags Display
     if (tagsContainerEl && server.vars?.tags) {
       const tagList = server.vars.tags.split(",").map(t => t.trim()).slice(0, 6);
       tagsContainerEl.innerHTML = tagList.map(tag => `<span class="server-tag-badge">#${tag}</span>`).join("");
     }
 
-    // 4. Update any dynamic server description or host name if present
+    // Update dynamic server description if present
     const descEl = document.getElementById('fivem-dynamic-desc');
     if (descEl && server.vars?.sv_projectDesc) {
       descEl.textContent = server.vars.sv_projectDesc;
     }
-
-  } catch (error) {
-    console.warn("Live FiveM status query fallback active:", error);
-    if (playersEl) playersEl.innerHTML = `🎮 <strong>cfx.re/join/${joinCode}</strong> Live Server`;
+  } else {
+    // Graceful offline / maintenance or connecting fallback
+    if (navPlayerCounter) navPlayerCounter.innerHTML = `Join: <strong>${joinCode.toUpperCase()}</strong>`;
+    if (playersEl) playersEl.innerHTML = `🟢 <strong>cfx.re/join/${joinCode}</strong> Live Server Protocol`;
   }
 }
 
