@@ -617,6 +617,233 @@ a:hover {
 }
 
 /* ==========================================================================
+   Team Card Snippets & Interactive Bio Trigger Button
+   ========================================================================== */
+.team-snippet {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 10px 0 18px;
+  max-width: 240px;
+  min-height: 40px;
+}
+
+.btn-bio-trigger {
+  background: rgba(255, 26, 64, 0.12);
+  border: 1px solid rgba(255, 26, 64, 0.4);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  width: 100%;
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-bio-trigger:hover, .team-card:hover .btn-bio-trigger {
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent-primary));
+  border-color: #fff;
+  box-shadow: 0 0 15px var(--accent-glow);
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   Interactive Citizen Profile Dossier & About Me Modal Card
+   ========================================================================== */
+.bio-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(4, 4, 8, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bio-modal-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bio-modal-card {
+  background: linear-gradient(145deg, rgba(22, 22, 32, 0.96), rgba(12, 12, 18, 0.98));
+  border: 1px solid rgba(255, 26, 64, 0.5);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.95), 0 0 40px rgba(255, 26, 64, 0.35);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 560px;
+  padding: 40px 36px;
+  position: relative;
+  transform: translateY(40px) scale(0.92);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.bio-modal-overlay.is-open .bio-modal-card {
+  transform: translateY(0) scale(1);
+}
+
+.bio-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 2.2rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.bio-modal-close:hover {
+  color: var(--accent-bright);
+  transform: rotate(90deg) scale(1.1);
+}
+
+.bio-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 24px;
+}
+
+.bio-avatar-ring {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, #fff, var(--accent-primary));
+  box-shadow: 0 0 20px rgba(255, 26, 64, 0.6);
+  flex-shrink: 0;
+}
+
+.bio-avatar-ring img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #111;
+  display: block;
+}
+
+.bio-header-info {
+  text-align: left;
+}
+
+.modal-citizen-name {
+  font-size: 1.7rem;
+  color: #fff;
+  margin: 0 0 8px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.bio-section-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent-primary);
+  font-weight: 700;
+  margin: 0 0 10px;
+  text-align: left;
+}
+
+.bio-description-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  text-align: left;
+  margin: 0;
+}
+
+.bio-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.bio-social-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: var(--transition-fast);
+  text-decoration: none;
+}
+
+.bio-social-link:hover {
+  background: rgba(255, 26, 64, 0.2);
+  border-color: #fff;
+  box-shadow: 0 0 16px rgba(255, 26, 64, 0.5);
+  transform: translateY(-2px);
+}
+
+.bio-link-arrow {
+  margin-left: auto;
+  color: var(--accent-primary);
+  font-weight: 800;
+}
+
+.bio-modal-footer {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.bio-discord-btn {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  padding: 14px 24px;
+}
+
+@media (max-width: 600px) {
+  .bio-modal-card {
+    padding: 28px 20px;
+  }
+  .bio-modal-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+  .bio-header-info {
+    text-align: center;
+  }
+}
+
+/* ==========================================================================
    Rules & General Subpages
    ========================================================================== */
 .page-header {

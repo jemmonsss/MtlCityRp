@@ -14,7 +14,7 @@
   <meta name="theme-color" content="#e60028">
 
   <!-- Favicon placeholder -->
-  <link rel="icon" href="https://forum.cfx.re/user_avatar/forum.cfx.re/mtlcity/144/4891586_2.png" type="image/png">
+  <link rel="icon" href="https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png" type="image/png">
 
   <!-- Custom Design System CSS -->
   <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
@@ -39,6 +39,39 @@
   <button id="back-to-top-btn" class="back-to-top" aria-label="Scroll to top of page">
     ⬆️ <span>TOP</span>
   </button>
+
+  <!-- Citizen Profile Dossier & About Me Modal Card -->
+  <div id="citizen-bio-modal" class="bio-modal-overlay" aria-hidden="true" role="dialog" aria-labelledby="modal-bio-name">
+    <div class="bio-modal-card">
+      <button class="bio-modal-close" id="close-bio-modal" aria-label="Close dialog">&times;</button>
+      
+      <div class="bio-modal-header">
+        <div class="bio-avatar-ring">
+          <img id="modal-bio-image" src="https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png" referrerpolicy="no-referrer" alt="Citizen Avatar">
+        </div>
+        <div class="bio-header-info">
+          <h3 id="modal-bio-name" class="modal-citizen-name">Citizen Name</h3>
+          <span id="modal-bio-rank" class="rank-badge">Rank</span>
+        </div>
+      </div>
+
+      <div class="bio-modal-body">
+        <h4 class="bio-section-label">📜 Citizen Dossier & About Me</h4>
+        <p id="modal-bio-text" class="bio-description-text"></p>
+        
+        <div id="modal-links-container" style="display: none;">
+          <h4 class="bio-section-label" style="margin-top: 24px;">🌐 Verified Socials & Links</h4>
+          <div id="modal-bio-links" class="bio-links-grid"></div>
+        </div>
+      </div>
+
+      <div class="bio-modal-footer">
+        <a href="#discord-hub" class="btn-secondary bio-discord-btn" onclick="document.getElementById('close-bio-modal').click();">
+          💬 Meet & Connect in Discord Hub
+        </a>
+      </div>
+    </div>
+  </div>
 
   <!-- Client-Side JavaScript -->
   <script src="{{ '/assets/js/main.js' | relative_url }}"></script>

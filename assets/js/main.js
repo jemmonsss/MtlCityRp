@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileNav();
   initBackToTop();
   initTouchEnhancements();
+  initCitizenBioModals();
 });
 
 /**
@@ -329,5 +330,102 @@ function initTouchEnhancements() {
     card.addEventListener('touchend', () => {
       setTimeout(() => card.classList.remove('touch-active'), 300);
     }, { passive: true });
+  });
+}
+
+/**
+ * Handles opening and populating the Citizen Profile Dossier Modal
+ * allowing team members to easily showcase their bios, roles, and verified links!
+ * Also applies referrer protection to allow external Discord CDN attachments to load cleanly.
+ */
+function initCitizenBioModals() {
+  const modalOverlay = document.getElementById('citizen-bio-modal');
+  const closeBtn = document.getElementById('close-bio-modal');
+  const cards = document.querySelectorAll('.js-bio-card');
+
+  if (!modalOverlay || !cards.length) return;
+
+  const nameEl = document.getElementById('modal-bio-name');
+  const rankEl = document.getElementById('modal-bio-rank');
+  const imgEl = document.getElementById('modal-bio-image');
+  const textEl = document.getElementById('modal-bio-text');
+  const linksContainer = document.getElementById('modal-links-container');
+  const linksGrid = document.getElementById('modal-bio-links');
+
+  const openModal = (card) => {
+    const name = card.getAttribute('data-name') || "Unknown Citizen";
+    const rank = card.getAttribute('data-rank') || "Citizen";
+    const rankClass = card.getAttribute('data-rank-class') || "";
+    const image = card.getAttribute('data-image') || "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png";
+    const bio = card.getAttribute('data-bio') || "No dossier details available.";
+    const linksJson = card.getAttribute('data-links') || "[]";
+
+    // Populate header & text
+    if (nameEl) nameEl.textContent = name;
+    if (rankEl) {
+      rankEl.textContent = rank;
+      rankEl.className = `rank-badge ${rankClass}`;
+    }
+    if (imgEl) {
+      imgEl.setAttribute('referrerpolicy', 'no-referrer');
+      imgEl.src = image;
+      imgEl.onerror = () => { imgEl.src = "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png"; };
+    }
+    if (textEl) textEl.textContent = bio;
+
+    // Populate verified links
+    if (linksContainer && linksGrid) {
+      try {
+        const links = JSON.parse(linksJson);
+        if (Array.isArray(links) && links.length > 0) {
+          linksGrid.innerHTML = links.map(link => `
+            <a href="${link.url || '#'}" target="_blank" rel="noopener noreferrer" class="bio-social-link">
+              <span class="bio-link-icon">${link.icon || '🔗'}</span>
+              <span class="bio-link-text">${link.label || link.name || 'External Link'}</span>
+              <span class="bio-link-arrow">&rarr;</span>
+            </a>
+          `).join("");
+          linksContainer.style.display = "block";
+        } else {
+          linksContainer.style.display = "none";
+        }
+      } catch (e) {
+        console.warn("Could not parse citizen links JSON:", e);
+        linksContainer.style.display = "none";
+      }
+    }
+
+    // Reveal modal with smooth glassmorphic transition
+    modalOverlay.classList.add('is-open');
+    modalOverlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    try { if (navigator.vibrate) navigator.vibrate(20); } catch (err) {}
+  };
+
+  const closeModal = () => {
+    modalOverlay.classList.remove('is-open');
+    modalOverlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  };
+
+  cards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      // Prevent opening modal if they clicked an existing direct link inside card
+      if (e.target.tagName.toLowerCase() === 'a' || e.target.closest('a')) return;
+      openModal(card);
+    });
+  });
+
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+  modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalOverlay.classList.contains('is-open')) {
+      closeModal();
+    }
   });
 }
