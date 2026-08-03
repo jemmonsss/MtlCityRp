@@ -22,13 +22,23 @@
     "name": "J_emmons_07",
     "image": "https://forum.cfx.re/user_avatar/forum.cfx.re/j_emmons_07/288/5657493_2.png",
     "rank": "Co Owner",
-    "snippet": "Executive Co-Owner overseeing community architecture and city development.",
-    "aboutMe": "Executive Co-Owner directing core server administration, community standards, and continuous city expansions. Dedicated to cultivating an elite, highly immersive roleplay standard across Los Santos.",
+    "snippet": "Co Owner and I also create and sell my scripts.",
+    "aboutMe": "Co Owner, working on everything I can to make the server fun for everyone :D.",
     "links": [
       {
-        "label": "CFX Forum Profile",
-        "url": "https://forum.cfx.re/u/j_emmons_07",
-        "icon": "🌐"
+        "label": "My Scripts",
+        "url": "https://js-store.tebex.store/",
+        "icon": "🔗"
+      },
+      {
+        "label": "My Links",
+        "url": "https://jemmonsss.github.io/Js-links/",
+        "icon": "🔗"
+      },
+      {
+        "label": "My Site",
+        "url": "https://toolsvault.org",
+        "icon": "🔗"
       }
     ]
   },
