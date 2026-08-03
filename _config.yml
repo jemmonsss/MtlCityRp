@@ -13,7 +13,7 @@ discord_server_id: "1461098178169540763" # Live Discord Widget ID
 discord_invite_url: "https://discord.gg/35shjtsN5K" # Official Discord server link
 fivem_join_code: "xeodpe" # Live FiveM Server ID for automatic API fetching
 fivem_join_link: "cfx.re/join/xeodpe" # Direct Connect URL
-tebex_store_url: "https://mtl-city.tebex.io/" # Official Scripts & Assets Store
+tebex_store_url: "https://mtl-scripts.tebex.io/" # Official Scripts & Assets Store
 
 # Navigation Links
 navigation:
@@ -26,7 +26,7 @@ navigation:
   - title: "City Rules"
     url: "/rules.html"
   - title: "Official Store"
-    url: "https://mtl-city.tebex.io/"
+    url: "https://mtl-scripts.tebex.io/"
     external: true
 
 # Jekyll & GitHub Pages Settings
