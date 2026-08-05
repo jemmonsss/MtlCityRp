@@ -11,13 +11,13 @@
 
 <div class="team-card js-bio-card" 
      data-name="{{ include.member.name | xml_escape }}"
-     data-image="{{ include.member.image }}"
+     data-image="{{ include.member.image | xml_escape }}"
      data-rank="{{ include.member.rank | xml_escape }}"
      data-rank-class="{{ rank_class }}"
      data-bio="{% if include.member.aboutMe %}{{ include.member.aboutMe | xml_escape }}{% else %}This citizen has not published their expanded dossier yet. Connect with them directly inside our official Discord Hub!{% endif %}"
      data-links='{{ include.member.links | jsonify | xml_escape }}'>
   <div class="avatar-container">
-    <img src="{{ include.member.image }}" alt="{{ include.member.name }}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png'">
+    <img src="{{ include.member.image | xml_escape }}" alt="{{ include.member.name | xml_escape }}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='{{ '/assets/images/default-avatar.svg' | relative_url }}'">
   </div>
   
   <h3 class="team-name">{{ include.member.name }}</h3>
@@ -29,7 +29,7 @@
     <p class="team-snippet">Dedicated team member architecting and maintaining MTL City Rp.</p>
   {% endif %}
 
-  <button class="btn-bio-trigger" aria-label="Open citizen profile for {{ include.member.name }}">
+  <button type="button" class="btn-bio-trigger" aria-label="Open citizen profile for {{ include.member.name | xml_escape }}">
     👤 Citizen Dossier
   </button>
 </div>

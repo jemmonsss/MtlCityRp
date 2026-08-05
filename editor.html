@@ -1,8 +1,9 @@
 ---
 layout: default
-title: "Hidden Citizen Dossier & Profile Editor"
-description: "Internal team profile editor for generating custom team.json snippets."
+title: "Citizen Dossier & Profile Editor"
+description: "Browser-based team profile editor for generating custom team.json snippets."
 permalink: /editor.html
+noindex: true
 ---
 
 <div class="page-header">
@@ -15,14 +16,20 @@ permalink: /editor.html
   </div>
 </div>
 
+<div class="container" style="max-width: 1100px; margin: 24px auto 0;">
+  <div role="note" style="background: rgba(255, 180, 32, 0.1); border: 1px solid rgba(255, 180, 32, 0.55); border-radius: var(--radius-sm); padding: 14px 18px; color: #ffe0a3; line-height: 1.55;">
+    <strong>Public utility notice:</strong> GitHub Pages cannot make this page private. The editor only changes data in your browser; it does not save to the repository or provide access control.
+  </div>
+</div>
+
 <div class="container" style="max-width: 1100px; margin: 40px auto 80px;">
-  <div class="editor-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 32px; align-items: start;">
+  <div class="editor-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr)); gap: 32px; align-items: start;">
     
     <!-- Left Column: Interactive Editor Form -->
     <div class="editor-card glass-panel" style="background: var(--glass-bg); border: 1px solid rgba(255, 26, 64, 0.35); border-radius: var(--radius-lg); padding: 36px; box-shadow: 0 15px 50px rgba(0,0,0,0.7);">
       <h3 style="color: #fff; font-size: 1.4rem; margin-top: 0; margin-bottom: 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
         <span>✏️ Profile Configuration</span>
-        <button id="btn-preview-modal" class="btn-bio-trigger" style="width: auto; margin: 0; padding: 8px 16px;">👁️ Preview Bio Card</button>
+        <button type="button" id="btn-preview-modal" class="btn-bio-trigger" style="width: auto; margin: 0; padding: 8px 16px;">👁️ Preview Bio Card</button>
       </h3>
 
       <div class="form-group" style="margin-bottom: 22px;">
@@ -56,7 +63,7 @@ permalink: /editor.html
         <label for="edit-image" class="editor-label">Avatar Image URL:</label>
         <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 8px;">
           <div class="preview-avatar-box" style="width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--accent-primary); overflow: hidden; flex-shrink: 0; background: #111; box-shadow: 0 0 15px rgba(255, 26, 64, 0.4);">
-            <img id="avatar-live-preview" src="https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png" referrerpolicy="no-referrer" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+            <img id="avatar-live-preview" src="{{ '/assets/images/default-avatar.svg' | relative_url }}" referrerpolicy="no-referrer" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
           </div>
           <input type="url" id="edit-image" class="editor-input" style="flex-grow: 1;" placeholder="https://cdn.discordapp.com/avatars/...">
         </div>
@@ -103,10 +110,10 @@ permalink: /editor.html
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 16px;">
-        <button id="btn-copy-individual" class="btn-connect" style="width: 100%; justify-content: center; font-size: 1rem; padding: 16px;">
+        <button type="button" id="btn-copy-individual" class="btn-connect" style="width: 100%; justify-content: center; font-size: 1rem; padding: 16px;">
           📋 Copy Individual Profile Snippet (For J_emmons_07)
         </button>
-        <button id="btn-copy-full" class="btn-secondary" style="width: 100%; justify-content: center; font-size: 0.92rem; padding: 14px;">
+        <button type="button" id="btn-copy-full" class="btn-secondary" style="width: 100%; justify-content: center; font-size: 0.92rem; padding: 14px;">
           📑 Copy Entire Updated team.json Array
         </button>
       </div>
@@ -190,8 +197,10 @@ permalink: /editor.html
 </script>
 
 <script>
+'use strict';
+
 document.addEventListener('DOMContentLoaded', () => {
-  const teamData = window.MTL_TEAM_ROSTER || [];
+  const teamData = Array.isArray(window.MTL_TEAM_ROSTER) ? window.MTL_TEAM_ROSTER : [];
   const selectEl = document.getElementById('select-member');
   const nameInput = document.getElementById('edit-name');
   const rankSelect = document.getElementById('edit-rank');
@@ -204,126 +213,150 @@ document.addEventListener('DOMContentLoaded', () => {
   const jsonBox = document.getElementById('json-code-box');
   const addLinkBtn = document.getElementById('btn-add-link');
   const previewModalBtn = document.getElementById('btn-preview-modal');
-  const copyIndivBtn = document.getElementById('btn-copy-individual');
+  const copyIndividualBtn = document.getElementById('btn-copy-individual');
   const copyFullBtn = document.getElementById('btn-copy-full');
+  const fallbackAvatar = document.body.dataset.fallbackAvatar || 'assets/images/default-avatar.svg';
+  const standardRanks = ['Owner', 'Co Owner', 'Developer', 'Clothing Developer', 'Senior Lead', 'Community Support', 'Content Creator'];
+
+  if (!selectEl || !nameInput || !rankSelect || !rankCustomInput || !imageInput || !avatarPreview ||
+      !snippetInput || !aboutInput || !linksContainer || !jsonBox || !addLinkBtn ||
+      !previewModalBtn || !copyIndividualBtn || !copyFullBtn) {
+    console.error('The profile editor could not initialize because required controls are missing.');
+    return;
+  }
 
   let currentSelectedIndex = 0;
-  let workingTeamArray = JSON.parse(JSON.stringify(teamData));
+  const workingTeamArray = JSON.parse(JSON.stringify(teamData));
 
-  // Populate Dropdown
-  const populateDropdown = () => {
-    selectEl.innerHTML = '';
-    workingTeamArray.forEach((person, idx) => {
-      const opt = document.createElement('option');
-      opt.value = idx;
-      opt.textContent = `${person.name || 'Unnamed Citizen'} (${person.rank || 'Member'})`;
-      selectEl.appendChild(opt);
-    });
-    const newOpt = document.createElement('option');
-    newOpt.value = "NEW";
-    newOpt.textContent = "➕ Create New Roster Entry...";
-    newOpt.style.color = "#00ff88";
-    selectEl.appendChild(newOpt);
-    selectEl.value = currentSelectedIndex;
+  const notify = (message) => {
+    if (typeof window.showNotification === 'function') window.showNotification(message);
+    else window.alert(message);
   };
 
-  const renderLinks = (linksArray) => {
-    linksContainer.innerHTML = '';
-    if (!Array.isArray(linksArray) || linksArray.length === 0) {
-      linksContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 0.88rem; font-style: italic; padding: 8px 0;">No external social links attached yet. Click "+ Add Link" above!</div>`;
-      return;
+  const safeUrl = (value) => {
+    if (typeof window.safeExternalUrl === 'function') return window.safeExternalUrl(value);
+    try {
+      const parsed = new URL(String(value || '').trim(), window.location.href);
+      return ['http:', 'https:'].includes(parsed.protocol) ? parsed.href : null;
+    } catch (error) {
+      return null;
     }
-    linksArray.forEach((lnk, i) => {
-      const row = document.createElement('div');
-      row.className = 'link-entry-row';
-      row.innerHTML = `
-        <input type="text" class="editor-input link-icon-val" value="${lnk.icon || '🔗'}" title="Icon/Emoji" placeholder="Icon">
-        <input type="text" class="editor-input link-label-val" value="${lnk.label || lnk.name || 'Link Title'}" placeholder="Label (e.g. CFX Forum)">
-        <input type="url" class="editor-input link-url-val" value="${lnk.url || ''}" placeholder="https://...">
-        <button type="button" class="btn-remove-link" data-index="${i}" title="Remove Link">&times;</button>
-      `;
-      linksContainer.appendChild(row);
+  };
+
+  const updateAvatar = (value) => {
+    avatarPreview.onerror = () => {
+      avatarPreview.onerror = null;
+      avatarPreview.src = fallbackAvatar;
+    };
+    avatarPreview.src = safeUrl(value) || fallbackAvatar;
+  };
+
+  const copyToClipboard = async (text) => {
+    if (typeof window.copyText === 'function') return window.copyText(text);
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      return navigator.clipboard.writeText(text);
+    }
+    throw new Error('Clipboard access is unavailable.');
+  };
+
+  const populateDropdown = () => {
+    selectEl.replaceChildren();
+
+    workingTeamArray.forEach((person, index) => {
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = `${person.name || 'Unnamed Citizen'} (${person.rank || 'Member'})`;
+      selectEl.appendChild(option);
     });
 
-    // Attach listeners for removal and updates
-    linksContainer.querySelectorAll('.btn-remove-link').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const idxToRemove = parseInt(e.currentTarget.getAttribute('data-index'), 10);
-        const curMember = workingTeamArray[currentSelectedIndex];
-        if (curMember && curMember.links) {
-          curMember.links.splice(idxToRemove, 1);
-          renderLinks(curMember.links);
-          updateJsonPreview();
-        }
-      });
-    });
+    const newOption = document.createElement('option');
+    newOption.value = 'NEW';
+    newOption.textContent = '➕ Create New Roster Entry...';
+    newOption.style.color = '#00ff88';
+    selectEl.appendChild(newOption);
 
-    linksContainer.querySelectorAll('input').forEach(inp => {
-      inp.addEventListener('input', () => {
-        readLinksFromDOM();
-        updateJsonPreview();
-      });
-    });
+    if (workingTeamArray.length > 0) selectEl.value = String(currentSelectedIndex);
   };
 
   const readLinksFromDOM = () => {
-    const rows = linksContainer.querySelectorAll('.link-entry-row');
-    const links = [];
-    rows.forEach(row => {
-      const icon = row.querySelector('.link-icon-val').value || '🔗';
-      const label = row.querySelector('.link-label-val').value || 'Link Title';
-      const url = row.querySelector('.link-url-val').value || '';
-      links.push({ label, url, icon });
-    });
+    const links = [...linksContainer.querySelectorAll('.link-entry-row')].map((row) => ({
+      icon: row.querySelector('.link-icon-val').value || '🔗',
+      label: row.querySelector('.link-label-val').value || 'Link Title',
+      url: row.querySelector('.link-url-val').value.trim()
+    }));
+
     if (workingTeamArray[currentSelectedIndex]) {
       workingTeamArray[currentSelectedIndex].links = links;
     }
   };
 
-  const loadMemberIntoForm = (index) => {
-    if (index === "NEW") {
-      const newPerson = {
-        name: "New Citizen",
-        image: "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png",
-        rank: "Developer",
-        snippet: "Active contributor and team leader in Los Santos.",
-        aboutMe: "Dedicated citizen working on core server advancement, active moderation, and immersive storytelling across MTL City Rp.",
-        links: []
-      };
-      workingTeamArray.push(newPerson);
-      currentSelectedIndex = workingTeamArray.length - 1;
-      populateDropdown();
-      selectEl.value = currentSelectedIndex;
-      loadMemberIntoForm(currentSelectedIndex);
+  const renderLinks = (linksArray) => {
+    linksContainer.replaceChildren();
+
+    if (!Array.isArray(linksArray) || linksArray.length === 0) {
+      const emptyState = document.createElement('div');
+      emptyState.style.cssText = 'color: var(--text-muted); font-style: italic; padding: 8px 0;';
+      emptyState.textContent = 'No external social links attached yet. Click “+ Add Link” above.';
+      linksContainer.appendChild(emptyState);
       return;
     }
 
-    currentSelectedIndex = parseInt(index, 10);
-    const person = workingTeamArray[currentSelectedIndex];
-    if (!person) return;
+    linksArray.forEach((link, index) => {
+      const row = document.createElement('div');
+      row.className = 'link-entry-row';
 
-    nameInput.value = person.name || '';
-    
-    // Check rank
-    const standardRanks = ["Owner", "Co Owner", "Developer", "Clothing Developer", "Senior Lead", "Community Support", "Content Creator"];
-    if (standardRanks.includes(person.rank)) {
-      rankSelect.value = person.rank;
-      rankCustomInput.style.display = "none";
-      rankCustomInput.value = "";
-    } else {
-      rankSelect.value = "Custom Rank";
-      rankCustomInput.style.display = "block";
-      rankCustomInput.value = person.rank || '';
-    }
+      const iconInput = document.createElement('input');
+      iconInput.type = 'text';
+      iconInput.className = 'editor-input link-icon-val';
+      iconInput.value = link.icon || '🔗';
+      iconInput.title = 'Icon or emoji';
+      iconInput.placeholder = 'Icon';
 
-    imageInput.value = person.image || '';
-    avatarPreview.src = person.image || "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png";
-    avatarPreview.onerror = () => { avatarPreview.src = "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png"; };
+      const labelInput = document.createElement('input');
+      labelInput.type = 'text';
+      labelInput.className = 'editor-input link-label-val';
+      labelInput.value = link.label || link.name || 'Link Title';
+      labelInput.placeholder = 'Label (for example, CFX Forum)';
 
-    snippetInput.value = person.snippet || '';
-    aboutInput.value = person.aboutMe || '';
-    renderLinks(person.links || []);
-    updateJsonPreview();
+      const urlInput = document.createElement('input');
+      urlInput.type = 'url';
+      urlInput.className = 'editor-input link-url-val';
+      urlInput.value = link.url || '';
+      urlInput.placeholder = 'https://...';
+      urlInput.setAttribute('aria-label', `URL for link ${index + 1}`);
+
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'btn-remove-link';
+      removeButton.title = 'Remove link';
+      removeButton.setAttribute('aria-label', `Remove link ${index + 1}`);
+      removeButton.textContent = '×';
+
+      const validateUrl = () => {
+        const value = urlInput.value.trim();
+        urlInput.setCustomValidity(value && !safeUrl(value) ? 'Enter a complete http:// or https:// URL.' : '');
+      };
+
+      [iconInput, labelInput, urlInput].forEach((input) => {
+        input.addEventListener('input', () => {
+          validateUrl();
+          readLinksFromDOM();
+          updateJsonPreview();
+        });
+      });
+
+      removeButton.addEventListener('click', () => {
+        const member = workingTeamArray[currentSelectedIndex];
+        if (!member || !Array.isArray(member.links)) return;
+        member.links.splice(index, 1);
+        renderLinks(member.links);
+        updateJsonPreview();
+      });
+
+      row.append(iconInput, labelInput, urlInput, removeButton);
+      linksContainer.appendChild(row);
+      validateUrl();
+    });
   };
 
   const updateJsonPreview = () => {
@@ -331,126 +364,127 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!person) return;
 
     person.name = nameInput.value;
-    person.rank = rankSelect.value === "Custom Rank" ? (rankCustomInput.value || "Member") : rankSelect.value;
-    person.image = imageInput.value;
+    person.rank = rankSelect.value === 'Custom Rank' ? (rankCustomInput.value || 'Member') : rankSelect.value;
+    person.image = imageInput.value.trim();
     person.snippet = snippetInput.value;
     person.aboutMe = aboutInput.value;
 
-    // Update avatar live box
-    if (avatarPreview.src !== imageInput.value) {
-      avatarPreview.src = imageInput.value || "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png";
-    }
-
+    updateAvatar(person.image);
     jsonBox.textContent = JSON.stringify(person, null, 2);
 
-    // Refresh option title in dropdown
-    const opt = selectEl.querySelector(`option[value="${currentSelectedIndex}"]`);
-    if (opt) opt.textContent = `${person.name} (${person.rank})`;
+    const option = selectEl.querySelector(`option[value="${currentSelectedIndex}"]`);
+    if (option) option.textContent = `${person.name || 'Unnamed Citizen'} (${person.rank || 'Member'})`;
   };
 
-  // Event Listeners for Live Editing
-  selectEl.addEventListener('change', (e) => loadMemberIntoForm(e.target.value));
-  nameInput.addEventListener('input', updateJsonPreview);
-  imageInput.addEventListener('input', updateJsonPreview);
-  snippetInput.addEventListener('input', updateJsonPreview);
-  aboutInput.addEventListener('input', updateJsonPreview);
+  const loadMemberIntoForm = (index) => {
+    if (index === 'NEW') {
+      workingTeamArray.push({
+        name: 'New Citizen',
+        image: fallbackAvatar,
+        rank: 'Developer',
+        snippet: 'Active contributor and team leader in Los Santos.',
+        aboutMe: 'Dedicated citizen working on core server advancement, active moderation, and immersive storytelling across MTL City Rp.',
+        links: []
+      });
+      currentSelectedIndex = workingTeamArray.length - 1;
+      populateDropdown();
+      selectEl.value = String(currentSelectedIndex);
+      loadMemberIntoForm(currentSelectedIndex);
+      return;
+    }
+
+    const parsedIndex = Number.parseInt(index, 10);
+    if (!Number.isInteger(parsedIndex) || !workingTeamArray[parsedIndex]) return;
+    currentSelectedIndex = parsedIndex;
+    const person = workingTeamArray[currentSelectedIndex];
+
+    nameInput.value = person.name || '';
+    if (standardRanks.includes(person.rank)) {
+      rankSelect.value = person.rank;
+      rankCustomInput.hidden = true;
+      rankCustomInput.style.display = 'none';
+      rankCustomInput.value = '';
+    } else {
+      rankSelect.value = 'Custom Rank';
+      rankCustomInput.hidden = false;
+      rankCustomInput.style.display = 'block';
+      rankCustomInput.value = person.rank || '';
+    }
+
+    imageInput.value = person.image || '';
+    updateAvatar(person.image);
+    snippetInput.value = person.snippet || '';
+    aboutInput.value = person.aboutMe || '';
+    renderLinks(person.links || []);
+    updateJsonPreview();
+  };
+
+  selectEl.addEventListener('change', (event) => loadMemberIntoForm(event.target.value));
+  [nameInput, imageInput, snippetInput, aboutInput].forEach((input) => input.addEventListener('input', updateJsonPreview));
 
   rankSelect.addEventListener('change', () => {
-    if (rankSelect.value === "Custom Rank") {
-      rankCustomInput.style.display = "block";
-    } else {
-      rankCustomInput.style.display = "none";
-    }
+    const custom = rankSelect.value === 'Custom Rank';
+    rankCustomInput.hidden = !custom;
+    rankCustomInput.style.display = custom ? 'block' : 'none';
     updateJsonPreview();
   });
   rankCustomInput.addEventListener('input', updateJsonPreview);
 
   addLinkBtn.addEventListener('click', () => {
-    const cur = workingTeamArray[currentSelectedIndex];
-    if (!cur.links || !Array.isArray(cur.links)) cur.links = [];
-    cur.links.push({ icon: "🔗", label: "New Link", url: "https://" });
-    renderLinks(cur.links);
+    const person = workingTeamArray[currentSelectedIndex];
+    if (!person) return;
+    if (!Array.isArray(person.links)) person.links = [];
+    person.links.push({ icon: '🔗', label: 'New Link', url: 'https://' });
+    renderLinks(person.links);
     updateJsonPreview();
+    const newestUrl = linksContainer.querySelector('.link-entry-row:last-child .link-url-val');
+    if (newestUrl) newestUrl.focus();
   });
 
-  // Copy buttons with Toast notifications
-  copyIndivBtn.addEventListener('click', () => {
-    const text = jsonBox.textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      if (typeof showNotification === 'function') {
-        showNotification("📋 Copied individual profile snippet! Ready to send to J_emmons_07.");
-      } else {
-        alert("Copied individual profile JSON snippet!");
-      }
-    }).catch(err => alert("Please select and copy the text inside the box."));
-  });
-
-  copyFullBtn.addEventListener('click', () => {
-    const fullJson = JSON.stringify(workingTeamArray, null, 2);
-    navigator.clipboard.writeText(fullJson).then(() => {
-      if (typeof showNotification === 'function') {
-        showNotification("📑 Copied entire updated team.json array to clipboard!");
-      } else {
-        alert("Copied complete team.json array!");
-      }
-    });
-  });
-
-  // Live Card Preview Trigger
-  previewModalBtn.addEventListener('click', () => {
-    const cur = workingTeamArray[currentSelectedIndex];
-    if (!cur) return;
-    
-    const modalOverlay = document.getElementById('citizen-bio-modal');
-    if (modalOverlay) {
-      const nameEl = document.getElementById('modal-bio-name');
-      const rankEl = document.getElementById('modal-bio-rank');
-      const imgEl = document.getElementById('modal-bio-image');
-      const textEl = document.getElementById('modal-bio-text');
-      const linksCont = document.getElementById('modal-links-container');
-      const linksGr = document.getElementById('modal-bio-links');
-
-      if (nameEl) nameEl.textContent = cur.name || 'Unnamed';
-      if (rankEl) { rankEl.textContent = cur.rank || 'Citizen'; rankEl.className = 'rank-badge'; }
-      if (imgEl) { imgEl.setAttribute('referrerpolicy', 'no-referrer'); imgEl.src = cur.image || "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png"; }
-      if (textEl) textEl.textContent = cur.aboutMe || cur.snippet || "No expanded dossier written yet.";
-
-      if (linksCont && linksGr) {
-        if (cur.links && cur.links.length > 0) {
-          linksGr.innerHTML = cur.links.map(l => `
-            <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="bio-social-link">
-              <span class="bio-link-icon">${l.icon || '🔗'}</span>
-              <span class="bio-link-text">${l.label || 'Link'}</span>
-              <span class="bio-link-arrow">&rarr;</span>
-            </a>
-          `).join("");
-          linksCont.style.display = "block";
-        } else {
-          linksCont.style.display = "none";
-        }
-      }
-
-      modalOverlay.classList.add('is-open');
-      modalOverlay.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-      try { if (navigator.vibrate) navigator.vibrate(15); } catch (err) {}
-
-      // Explicit close bindings for editor live preview
-      const closeEditorModal = () => {
-        modalOverlay.classList.remove('is-open');
-        modalOverlay.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-      };
-      const closeBtnEl = document.getElementById('close-bio-modal');
-      if (closeBtnEl) closeBtnEl.onclick = closeEditorModal;
-      modalOverlay.onclick = (e) => { if (e.target === modalOverlay) closeEditorModal(); };
+  copyIndividualBtn.addEventListener('click', async () => {
+    try {
+      await copyToClipboard(jsonBox.textContent);
+      notify('📋 Copied the individual profile JSON snippet.');
+    } catch (error) {
+      notify('Clipboard access was blocked. Select the JSON text and copy it manually.');
     }
   });
 
-  // Initialize form with first team member
+  copyFullBtn.addEventListener('click', async () => {
+    try {
+      await copyToClipboard(JSON.stringify(workingTeamArray, null, 2));
+      notify('📑 Copied the complete updated team.json array.');
+    } catch (error) {
+      notify('Clipboard access was blocked. Select the JSON text and copy it manually.');
+    }
+  });
+
+  previewModalBtn.addEventListener('click', () => {
+    const person = workingTeamArray[currentSelectedIndex];
+    if (!person) return;
+    readLinksFromDOM();
+    updateJsonPreview();
+
+    if (typeof window.openCitizenBioModal === 'function') {
+      window.openCitizenBioModal({
+        name: person.name,
+        rank: person.rank,
+        image: person.image,
+        bio: person.aboutMe || person.snippet,
+        links: person.links
+      }, previewModalBtn);
+    }
+  });
+
   populateDropdown();
   if (workingTeamArray.length > 0) {
     loadMemberIntoForm(0);
+  } else {
+    selectEl.disabled = true;
+    addLinkBtn.disabled = true;
+    previewModalBtn.disabled = true;
+    copyIndividualBtn.disabled = true;
+    jsonBox.textContent = 'No team records were found in _data/team.json.';
   }
 });
 </script>

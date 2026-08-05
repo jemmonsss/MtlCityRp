@@ -21,7 +21,7 @@
         <!-- Dynamic counters loaded via Discord Widget JSON API -->
         <div class="discord-stat-grid">
           <div class="stat-item">
-            <h4 id="discord-online-count" style="font-size: 1.25rem;">🟢 Loading Citizens...</h4>
+            <h4 id="discord-online-count" aria-live="polite" style="font-size: 1.25rem;">🟢 Loading Citizens...</h4>
             <span>Realtime Active Members</span>
           </div>
           <div class="stat-item">
@@ -41,8 +41,10 @@
       <div class="discord-iframe-container">
         <iframe 
           src="https://discord.com/widget?id={{ site.discord_server_id }}&theme=dark" 
+          title="MTL City Rp Discord server widget"
           width="350" 
           height="500" 
+          loading="lazy"
           allowtransparency="true" 
           frameborder="0" 
           sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts">

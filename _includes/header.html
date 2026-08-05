@@ -6,15 +6,15 @@
     </a>
 
     <!-- Mobile Hamburger Menu Button -->
-    <button id="mobile-nav-toggle" class="hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+    <button type="button" id="mobile-nav-toggle" class="hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="main-navigation">
       <span class="bar"></span>
       <span class="bar"></span>
       <span class="bar"></span>
     </button>
 
     <!-- Navigation Overlay & Links -->
-    <div id="nav-overlay" class="nav-overlay"></div>
-    <nav class="main-nav" id="main-navigation">
+    <div id="nav-overlay" class="nav-overlay" aria-hidden="true"></div>
+    <nav class="main-nav" id="main-navigation" aria-label="Primary navigation">
       {% for item in site.navigation %}
         <a href="{% if item.external %}{{ item.url }}{% else %}{{ item.url | relative_url }}{% endif %}" 
            class="nav-link" 
@@ -22,12 +22,12 @@
           {{ item.title }}
         </a>
       {% endfor %}
-      <div class="nav-status-pill" title="Realtime FiveM Player Status">
-        <span class="pulse-circle"></span>
+      <div class="nav-status-pill" title="Realtime FiveM Player Status" aria-live="polite">
+        <span class="pulse-circle" aria-hidden="true"></span>
         <span id="nav-player-counter">FiveM: Checking...</span>
       </div>
       <a href="https://{{ site.fivem_join_link }}" class="btn-connect js-connect-btn" data-copy-only="false">
-        ⚡ Play Now (XEODPE)
+        ⚡ Play Now ({{ site.fivem_join_code | upcase }})
       </a>
     </nav>
   </div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-CA">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,18 +8,27 @@
   
   <!-- SEO & OpenGraph Meta Tags for Discord & Social Embeds -->
   <meta property="og:title" content="{% if page.title %}{{ page.title }} | {{ site.title }}{% else %}{{ site.title }} - Elite FiveM RP{% endif %}">
-  <meta property="og:description" content="{{ site.description }}">
+  <meta property="og:description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ page.url | absolute_url }}">
+  <meta name="twitter:card" content="summary">
+  <link rel="canonical" href="{{ page.url | absolute_url }}">
+  {% if page.noindex %}<meta name="robots" content="noindex, nofollow">{% endif %}
   <meta name="theme-color" content="#e60028">
 
   <!-- Favicon placeholder -->
-  <link rel="icon" href="https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png" type="image/png">
+  <link rel="icon" href="{{ '/assets/images/favicon.svg' | relative_url }}" type="image/svg+xml">
+
+  <!-- Performance-friendly font loading with robust system-font fallbacks -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;1,400;1,700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Custom Design System CSS -->
   <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
 </head>
-<body>
+<body data-fallback-avatar="{{ '/assets/images/default-avatar.svg' | relative_url }}">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <!-- Embedded Data IDs for JavaScript Live API integrations -->
   <div id="discord-config-id" data-discord-id="{{ site.discord_server_id }}" style="display: none;"></div>
   <div id="fivem-config-link" data-join-link="{{ site.fivem_join_link }}" data-join-code="{{ site.fivem_join_code }}" style="display: none;"></div>
@@ -28,7 +37,7 @@
   {% include header.html %}
 
   <!-- Main Document Content Area -->
-  <main class="main-content">
+  <main class="main-content" id="main-content" tabindex="-1">
     {{ content }}
   </main>
 
@@ -36,18 +45,18 @@
   {% include footer.html %}
 
   <!-- Floating Back-To-Top Button -->
-  <button id="back-to-top-btn" class="back-to-top" aria-label="Scroll to top of page">
+  <button type="button" id="back-to-top-btn" class="back-to-top" aria-label="Scroll to top of page">
     ⬆️ <span>TOP</span>
   </button>
 
   <!-- Citizen Profile Dossier & About Me Modal Card -->
-  <div id="citizen-bio-modal" class="bio-modal-overlay" aria-hidden="true" role="dialog" aria-labelledby="modal-bio-name">
-    <div class="bio-modal-card">
-      <button class="bio-modal-close" id="close-bio-modal" aria-label="Close dialog">&times;</button>
+  <div id="citizen-bio-modal" class="bio-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-bio-name" inert>
+    <div class="bio-modal-card" tabindex="-1">
+      <button type="button" class="bio-modal-close" id="close-bio-modal" aria-label="Close dialog">&times;</button>
       
       <div class="bio-modal-header">
         <div class="bio-avatar-ring">
-          <img id="modal-bio-image" src="https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png" referrerpolicy="no-referrer" alt="Citizen Avatar">
+          <img id="modal-bio-image" src="{{ '/assets/images/default-avatar.svg' | relative_url }}" referrerpolicy="no-referrer" alt="Citizen Avatar">
         </div>
         <div class="bio-header-info">
           <h3 id="modal-bio-name" class="modal-citizen-name">Citizen Name</h3>
@@ -66,7 +75,7 @@
       </div>
 
       <div class="bio-modal-footer">
-        <a href="#discord-hub" class="btn-secondary bio-discord-btn" onclick="document.getElementById('close-bio-modal').click();">
+        <a href="{{ '/#discord-hub' | relative_url }}" class="btn-secondary bio-discord-btn">
           💬 Meet & Connect in Discord Hub
         </a>
       </div>

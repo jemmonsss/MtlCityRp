@@ -7,8 +7,8 @@ title: "Home"
 <section class="hero-section">
   <div class="container">
     <div class="hero-content">
-      <div id="fivem-status-indicator" class="status-badge">
-        <span class="pulse-circle"></span> Live FiveM Server - Join Code: XEODPE
+      <div id="fivem-status-indicator" class="status-badge" aria-live="polite">
+        <span class="pulse-circle" aria-hidden="true"></span> Live FiveM Server - Join Code: {{ site.fivem_join_code | upcase }}
       </div>
       
       <h1 class="hero-title">
@@ -23,7 +23,7 @@ title: "Home"
         <a href="https://{{ site.fivem_join_link }}" class="btn-connect js-connect-btn" style="font-size: 1.1rem; padding: 16px 36px;">
           ⚡ Connect to Los Santos
         </a>
-        <a href="https://mtl-scripts.tebex.io/" target="_blank" class="btn-secondary" style="padding: 16px 32px; border-color: #ff1a40;">
+        <a href="{{ site.tebex_store_url }}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding: 16px 32px; border-color: #ff1a40;">
           🛒 Visit Official Tebex Store
         </a>
       </div>
@@ -31,13 +31,13 @@ title: "Home"
       <!-- Realtime Auto-Updating Server Matrix Card (Pulls directly from FiveM Live API!) -->
       <div class="server-status-card" id="live-server-preview-card">
         <div class="server-banner-container">
-          <img id="fivem-dynamic-banner" src="https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png" alt="MTL City Rp Live Banner">
+          <img id="fivem-dynamic-banner" src="{{ '/assets/images/server-banner.svg' | relative_url }}" alt="MTL City Rp server banner">
         </div>
         
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; text-align: left;">
           <div>
-            <span class="section-tag" style="margin-bottom: 4px;">Live FiveM Protocol (cfx.re/join/xeodpe)</span>
-            <h3 id="fivem-players-count" style="font-size: 1.5rem; color: #fff; margin: 0;">
+            <span class="section-tag" style="margin-bottom: 4px;">Live FiveM Protocol ({{ site.fivem_join_link }})</span>
+            <h3 id="fivem-players-count" aria-live="polite" style="font-size: 1.5rem; color: #fff; margin: 0;">
               🎮 Loading Realtime Citizen Count...
             </h3>
             <p id="fivem-dynamic-desc" style="margin: 8px 0 0; font-size: 0.95rem; color: var(--text-secondary);">
@@ -66,7 +66,7 @@ title: "Home"
   <div class="container">
     <div class="section-header">
       <span class="section-tag">Industry-Leading Mechanics</span>
-      <h2 class="section-title">Why Citizen Choose MTL City</h2>
+      <h2 class="section-title">Why Citizens Choose MTL City</h2>
     </div>
 
     <div class="features-grid">
@@ -104,7 +104,7 @@ title: "Home"
         <p>
           Looking to expand your experience or acquire our acclaimed MTL-Scripts for your custom setups? Browse our verified official store for instant resource delivery & dedicated developer support.
         </p>
-        <a href="https://mtl-scripts.tebex.io/" target="_blank" style="display: inline-block; margin-top: 12px; font-weight: 700; color: #fff; text-decoration: underline;">
+        <a href="{{ site.tebex_store_url }}" target="_blank" rel="noopener noreferrer" style="display: inline-block; margin-top: 12px; font-weight: 700; color: #fff; text-decoration: underline;">
           Explore mtl-scripts.tebex.io &rarr;
         </a>
       </div>
@@ -139,13 +139,13 @@ title: "Home"
   <div class="container">
     <h2 class="hero-title" style="font-size: 3rem; margin-bottom: 20px;">Ready To Claim Your Street?</h2>
     <p style="max-width: 650px; margin: 0 auto 36px; font-size: 1.15rem;">
-      Connect directly to our Los Santos city servers via code <strong>xeodpe</strong> or join thousands of active members across our official Discord and Tebex platforms.
+      Connect directly to our Los Santos city servers via code <strong>{{ site.fivem_join_code | upcase }}</strong> or join our active community across the official Discord and Tebex platforms.
     </p>
     <div class="hero-actions">
       <a href="https://{{ site.fivem_join_link }}" class="btn-connect js-connect-btn" style="font-size: 1.15rem; padding: 18px 40px;">
-        🚀 Connect via cfx.re/join/xeodpe
+        🚀 Connect via {{ site.fivem_join_link }}
       </a>
-      <a href="https://mtl-scripts.tebex.io/" target="_blank" class="btn-secondary" style="font-size: 1.15rem; padding: 18px 36px;">
+      <a href="{{ site.tebex_store_url }}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="font-size: 1.15rem; padding: 18px 36px;">
         🛒 MTL-Scripts Tebex
       </a>
     </div>

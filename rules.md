@@ -27,6 +27,7 @@ Violation of city roleplay protocols will result in swift administrative enforce
 
 <div class="penalty-table-container">
   <table class="penalty-table">
+    <caption class="visually-hidden">MTL City Rp rule infractions and standard penalties</caption>
     <thead>
       <tr>
         <th>Rule Infraction / Violation</th>

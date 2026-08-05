@@ -3,8 +3,6 @@
    Theme: Obsidian Black & Neon Crimson Red with Glassmorphism
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;1,400;1,700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
-
 :root {
   /* HSL Tailored Ultra-Dark Palette */
   --bg-deep: #060608;
@@ -25,7 +23,7 @@
   --font-display: 'Chakra Petch', 'Outfit', sans-serif;
   --text-primary: #f0f0f5;
   --text-secondary: #a0a0b2;
-  --text-muted: #626274;
+  --text-muted: #7e7e91;
 
   /* Spacing and Layout */
   --container-max: 1240px;
@@ -46,6 +44,7 @@
 html {
   scroll-behavior: smooth;
   color-scheme: dark;
+  overflow-x: clip;
 }
 
 body {
@@ -61,6 +60,41 @@ body {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+}
+
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 100000;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: #111111;
+  font-weight: 800;
+  transform: translateY(-160%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  text-shadow: none;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
 }
 
 /* Custom Scrollbar */
@@ -268,6 +302,12 @@ a:hover {
   margin-bottom: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   animation: float 4s ease-in-out infinite;
+}
+
+.status-badge.status-unknown {
+  border-color: rgba(255, 180, 32, 0.55);
+  color: #ffd36a;
+  background: rgba(255, 180, 32, 0.1);
 }
 
 .pulse-circle {
@@ -1323,7 +1363,7 @@ a:hover {
   .main-nav {
     position: fixed;
     top: 70px;
-    right: -100%;
+    right: 0;
     width: 320px;
     max-width: 85vw;
     height: calc(100vh - 70px);
@@ -1335,13 +1375,16 @@ a:hover {
     border-left: 2px solid var(--accent-primary);
     box-shadow: -15px 0 50px rgba(0, 0, 0, 0.95);
     padding: 40px 30px;
-    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateX(105%);
+    visibility: hidden;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s;
     z-index: 1000;
     overflow-y: auto;
   }
 
   .main-nav.is-open {
-    right: 0;
+    transform: translateX(0);
+    visibility: visible;
   }
 
   .nav-link {
@@ -1376,6 +1419,18 @@ a:hover {
 
   .features-grid, .team-grid {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

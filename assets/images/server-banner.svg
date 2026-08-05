@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" role="img" aria-label="MTL City Rp server banner">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#050508"/>
+      <stop offset="0.55" stop-color="#17171f"/>
+      <stop offset="1" stop-color="#650014"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="75%" cy="40%" r="55%">
+      <stop offset="0" stop-color="#ff1a40" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#ff1a40" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="420" fill="url(#bg)"/>
+  <rect width="1200" height="420" fill="url(#glow)"/>
+  <path d="M0 330 150 240l90 48 130-118 90 58 125-145 110 130 115-82 135 130 110-60 165 100v119H0z" fill="#0a0a0f" opacity=".9"/>
+  <text x="70" y="174" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="78" font-weight="800" letter-spacing="5">MTL CITY</text>
+  <text x="72" y="244" fill="#ff1a40" font-family="Arial, Helvetica, sans-serif" font-size="68" font-weight="800" letter-spacing="18">ROLEPLAY</text>
+  <text x="76" y="300" fill="#c7c7d4" font-family="Arial, Helvetica, sans-serif" font-size="25" letter-spacing="6">LOS SANTOS • QUEBEC • FIVEM</text>
+</svg>

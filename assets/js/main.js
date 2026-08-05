@@ -1,215 +1,151 @@
-/** ==========================================================================
- * MTL City Rp - Interactive Website & Realtime API Integrations
- * Auto-pulls live server details and images directly from FiveM & Discord APIs!
- * ========================================================================== */
-
-document.addEventListener('DOMContentLoaded', () => {
-  initDiscordLiveStats();
-  initFivemServerMonitor();
-  initConnectButton();
-  initSmoothNavigation();
-  initMobileNav();
-  initBackToTop();
-  initTouchEnhancements();
-  initCitizenBioModals();
-});
-
 /**
- * Connects to Discord's Official Widget API to dynamically display
- * live online member counts and activity in the Discord Hub section.
+ * MTL City Rp - interactive controls and live status integrations.
  */
-async function initDiscordLiveStats() {
-  const discordConfigElement = document.getElementById('discord-config-id');
-  if (!discordConfigElement) return;
+'use strict';
 
-  const serverId = discordConfigElement.getAttribute('data-discord-id');
-  if (!serverId) return;
+(() => {
+const FALLBACK_AVATAR = document.body.dataset.fallbackAvatar || 'assets/images/default-avatar.svg';
 
-  const onlineCountEl = document.getElementById('discord-online-count');
-  const serverTitleEl = document.getElementById('discord-server-title');
+function safeExternalUrl(rawValue) {
+  if (typeof rawValue !== 'string' || !rawValue.trim()) return null;
 
   try {
-    const response = await fetch(`https://discord.com/api/guilds/${serverId}/widget.json`);
-    if (!response.ok) {
-      console.warn("Discord Widget API couldn't be loaded. Check that 'Enable Server Widget' is ON in Discord Server Settings -> Widget.");
-      if (onlineCountEl) onlineCountEl.innerHTML = "🟢 <strong>Live</strong> Community Hub";
-      return;
-    }
-
-    const data = await response.json();
-
-    // Update server title if returned
-    if (serverTitleEl && data.name) {
-      serverTitleEl.textContent = data.name;
-    }
-
-    // Update active user presence count
-    if (onlineCountEl && data.presence_count !== undefined) {
-      animateValue(onlineCountEl, 0, data.presence_count, 1500, "Active Citizens Online in Discord", "💬");
-    }
-
-    // We maintain our official permanent invite link configured in _config.yml
+    const parsed = new URL(rawValue.trim(), window.location.href);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.href : null;
   } catch (error) {
-    console.error("Error fetching live Discord stats:", error);
-    if (onlineCountEl) onlineCountEl.innerHTML = "🟢 <strong>Online</strong> Active Discord Hub";
+    return null;
   }
 }
 
-/**
- * Automatically pulls real-time details from official FiveM server servers-frontend API (code: xeodpe).
- * Dynamically fetches live player counts, maximum slots, tags, and automatically updates
- * banner images whenever the team updates their FiveM/CFX configurations!
- */
-async function initFivemServerMonitor() {
-  const fivemConfigEl = document.getElementById('fivem-config-link');
-  const joinCode = fivemConfigEl ? (fivemConfigEl.getAttribute('data-join-code') || "xeodpe") : "xeodpe";
-  const playersEl = document.getElementById('fivem-players-count');
-  const bannerImgEl = document.getElementById('fivem-dynamic-banner');
-  const tagsContainerEl = document.getElementById('fivem-dynamic-tags');
-  const serverStatusBadge = document.getElementById('fivem-status-indicator');
-  const navPlayerCounter = document.getElementById('nav-player-counter');
+function setImageSource(image, rawValue, fallback = FALLBACK_AVATAR) {
+  if (!image) return;
 
-  const targetUrl = `https://servers-frontend.fivem.net/api/servers/single/${joinCode}`;
-  let server = null;
+  const safeSource = safeExternalUrl(rawValue) || fallback;
+  image.onerror = () => {
+    image.onerror = null;
+    image.src = fallback;
+  };
+  image.src = safeSource;
+}
+
+async function fetchJson(url, timeoutMs = 6500) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    // 1. Try Direct API Query
-    const res = await fetch(targetUrl);
-    if (res.ok) {
-      const json = await res.json();
-      server = json.Data;
-    }
-  } catch (err) {
-    console.warn("Direct FiveM API fetch restricted by browser CORS, switching to fallback proxy...");
-  }
-
-  // 2. CORS Proxy Fallback (Guarantees player counts load reliably across browsers and GitHub Pages)
-  if (!server) {
-    try {
-      const proxyRes = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`);
-      if (proxyRes.ok) {
-        const json = await proxyRes.json();
-        server = json.Data;
-      }
-    } catch (proxyErr) {
-      console.warn("Primary proxy fallback timeout, trying backup tracker...");
-    }
-  }
-
-  // 3. Second Backup Proxy
-  if (!server) {
-    try {
-      const backupRes = await fetch(`https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`);
-      if (backupRes.ok) {
-        const json = await backupRes.json();
-        server = json.Data;
-      }
-    } catch (e) {
-      console.error("All Live FiveM API queries unreachable:", e);
-    }
-  }
-
-  // Handle successful data pull
-  if (server && server.clients !== undefined) {
-    const onlineCount = server.clients;
-    const maxCount = server.sv_maxclients || 64;
-
-    // Update global Top Navigation bar pill
-    if (navPlayerCounter) {
-      navPlayerCounter.innerHTML = `<strong>${onlineCount} / ${maxCount}</strong> Citizens Online`;
-    }
-
-    // Update Hero Banner status indicator badge
-    if (serverStatusBadge) {
-      serverStatusBadge.innerHTML = `<span class="pulse-circle"></span> ONLINE - <strong>${onlineCount} Players</strong> Active In City`;
-    }
-
-    // Update Homepage matrix showcase card
-    if (playersEl) {
-      playersEl.innerHTML = `🎮 <strong>${onlineCount} / ${maxCount}</strong> Citizens Playing Live`;
-    }
-
-    // Dynamic Banner Image Pull
-    const bannerUrl = server.vars?.banner_detail || server.vars?.banner_connecting || null;
-    if (bannerUrl && bannerImgEl) {
-      bannerImgEl.src = bannerUrl;
-      bannerImgEl.style.display = 'block';
-      bannerImgEl.parentElement.classList.add('has-dynamic-banner');
-    }
-
-    // Dynamic Server Tags Display
-    if (tagsContainerEl && server.vars?.tags) {
-      const tagList = server.vars.tags.split(",").map(t => t.trim()).slice(0, 6);
-      tagsContainerEl.innerHTML = tagList.map(tag => `<span class="server-tag-badge">#${tag}</span>`).join("");
-    }
-
-    // Update dynamic server description if present
-    const descEl = document.getElementById('fivem-dynamic-desc');
-    if (descEl && server.vars?.sv_projectDesc) {
-      descEl.textContent = server.vars.sv_projectDesc;
-    }
-  } else {
-    // Graceful offline / maintenance or connecting fallback
-    if (navPlayerCounter) navPlayerCounter.innerHTML = `Join: <strong>${joinCode.toUpperCase()}</strong>`;
-    if (playersEl) playersEl.innerHTML = `🟢 <strong>cfx.re/join/${joinCode}</strong> Live Server Protocol`;
-  }
-}
-
-/**
- * Smooth numeric counter animation for online players & members
- */
-function animateValue(obj, start, end, duration, label, icon = "🟢") {
-  let startTimestamp = null;
-  const step = (timestamp) => {
-    if (!startTimestamp) startTimestamp = timestamp;
-    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-    const currentValue = Math.floor(progress * (end - start) + start);
-    obj.innerHTML = `${icon} <strong>${currentValue}</strong> ${label}`;
-    if (progress < 1) {
-      window.requestAnimationFrame(step);
-    }
-  };
-  window.requestAnimationFrame(step);
-}
-
-/**
- * Handles FiveM direct connect & store buttons with interactive toast feedback
- */
-function initConnectButton() {
-  const connectButtons = document.querySelectorAll('.js-connect-btn');
-  const joinCodeEl = document.getElementById('fivem-config-link');
-  const joinLink = joinCodeEl ? joinCodeEl.getAttribute('data-join-link') : "cfx.re/join/xeodpe";
-
-  connectButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      try { if (navigator.vibrate) navigator.vibrate([30, 50, 30]); } catch (err) {}
-      if (btn.getAttribute('data-copy-only') === "true") {
-        e.preventDefault();
-        navigator.clipboard.writeText(joinLink).then(() => {
-          showNotification(`🎮 Copied Connect Code: ${joinLink}`);
-        }).catch(() => {
-          showNotification(`🚀 Direct Connect: ${joinLink}`);
-        });
-      } else {
-        showNotification(`🔥 Connecting to MTL City Rp... See you in Los Santos!`);
-      }
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { Accept: 'application/json' }
     });
+
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    return await response.json();
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+function setRichStatus(element, { icon = '', value = '', label = '' } = {}) {
+  if (!element) return;
+
+  const fragment = document.createDocumentFragment();
+  if (icon) fragment.append(document.createTextNode(`${icon} `));
+
+  if (value !== '') {
+    const strong = document.createElement('strong');
+    strong.textContent = String(value);
+    fragment.append(strong);
+  }
+
+  if (label) fragment.append(document.createTextNode(`${value !== '' ? ' ' : ''}${label}`));
+  element.replaceChildren(fragment);
+}
+
+function renderBioLinks(container, links) {
+  if (!container) return 0;
+  container.replaceChildren();
+
+  if (!Array.isArray(links)) return 0;
+
+  let rendered = 0;
+  links.forEach((link) => {
+    const href = safeExternalUrl(link && link.url);
+    if (!href) return;
+
+    const anchor = document.createElement('a');
+    anchor.href = href;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+    anchor.className = 'bio-social-link';
+
+    const icon = document.createElement('span');
+    icon.className = 'bio-link-icon';
+    icon.textContent = String((link && link.icon) || '🔗');
+
+    const text = document.createElement('span');
+    text.className = 'bio-link-text';
+    text.textContent = String((link && (link.label || link.name)) || 'External Link');
+
+    const arrow = document.createElement('span');
+    arrow.className = 'bio-link-arrow';
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '→';
+
+    anchor.append(icon, text, arrow);
+    container.appendChild(anchor);
+    rendered += 1;
+  });
+
+  return rendered;
+}
+
+window.safeExternalUrl = safeExternalUrl;
+window.renderBioLinks = renderBioLinks;
+
+function copyText(text) {
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    return navigator.clipboard.writeText(text);
+  }
+
+  return new Promise((resolve, reject) => {
+    const helper = document.createElement('textarea');
+    helper.value = text;
+    helper.setAttribute('readonly', '');
+    helper.style.position = 'fixed';
+    helper.style.opacity = '0';
+    helper.style.pointerEvents = 'none';
+    document.body.appendChild(helper);
+    helper.select();
+
+    try {
+      const copied = document.execCommand('copy');
+      helper.remove();
+      copied ? resolve() : reject(new Error('Copy command was rejected.'));
+    } catch (error) {
+      helper.remove();
+      reject(error);
+    }
   });
 }
 
-/**
- * Displays a stylish, glassmorphic toast notification when connecting or interacting
- */
+window.copyText = copyText;
+
 function showNotification(message) {
   const existing = document.querySelector('.city-toast');
   if (existing) existing.remove();
 
   const toast = document.createElement('div');
   toast.className = 'city-toast';
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
   toast.style.cssText = `
     position: fixed;
     bottom: 30px;
     right: 30px;
+    max-width: min(420px, calc(100vw - 32px));
     background: rgba(22, 22, 30, 0.95);
     border: 1px solid #ff1a40;
     box-shadow: 0 10px 35px rgba(0,0,0,0.8), 0 0 20px rgba(255, 26, 64, 0.5);
@@ -222,203 +158,487 @@ function showNotification(message) {
     letter-spacing: 1px;
     z-index: 99999;
     backdrop-filter: blur(14px);
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
     transform: translateY(40px);
     opacity: 0;
   `;
-  toast.innerText = message;
+  toast.textContent = message;
   document.body.appendChild(toast);
 
-  requestAnimationFrame(() => {
+  window.requestAnimationFrame(() => {
     toast.style.transform = 'translateY(0)';
     toast.style.opacity = '1';
   });
 
-  setTimeout(() => {
+  window.setTimeout(() => {
     toast.style.transform = 'translateY(40px)';
     toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 400);
+    window.setTimeout(() => toast.remove(), 400);
   }, 4000);
 }
 
-/**
- * Highlights navigation menu items based on active page or scroll position
- */
-function initSmoothNavigation() {
-  const navLinks = document.querySelectorAll('.nav-link');
-  const currentPath = window.location.pathname;
+window.showNotification = showNotification;
 
-  navLinks.forEach(link => {
-    const href = link.getAttribute('href');
-    if (currentPath === href || (href !== '/' && currentPath.includes(href))) {
-      link.classList.add('active');
+document.addEventListener('DOMContentLoaded', () => {
+  initDiscordLiveStats();
+  initFivemServerMonitor();
+  initConnectButton();
+  initSmoothNavigation();
+  initMobileNav();
+  initBackToTop();
+  initTouchEnhancements();
+  initCitizenBioModals();
+});
+
+async function initDiscordLiveStats() {
+  const config = document.getElementById('discord-config-id');
+  if (!config) return;
+
+  const serverId = config.dataset.discordId;
+  if (!serverId) return;
+
+  const onlineCount = document.getElementById('discord-online-count');
+  const serverTitle = document.getElementById('discord-server-title');
+
+  try {
+    const data = await fetchJson(`https://discord.com/api/guilds/${encodeURIComponent(serverId)}/widget.json`);
+
+    if (serverTitle && typeof data.name === 'string' && data.name.trim()) {
+      serverTitle.textContent = data.name.trim();
     }
+
+    const presenceCount = Number(data.presence_count);
+    if (onlineCount && Number.isFinite(presenceCount) && presenceCount >= 0) {
+      animateValue(onlineCount, 0, presenceCount, 1200, 'Active Citizens Online in Discord', '💬');
+    }
+  } catch (error) {
+    console.warn('Discord community status is temporarily unavailable.', error);
+    setRichStatus(onlineCount, {
+      icon: '💬',
+      value: 'Live',
+      label: 'Community Hub'
+    });
+  }
+}
+
+async function requestFivemServer(targetUrl) {
+  const requestUrls = [
+    targetUrl,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+    `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`
+  ];
+
+  for (const requestUrl of requestUrls) {
+    try {
+      const payload = await fetchJson(requestUrl, 5500);
+      if (payload && payload.Data && typeof payload.Data === 'object') return payload.Data;
+    } catch (error) {
+      console.warn('FiveM status source was unavailable; trying the next source.', error);
+    }
+  }
+
+  return null;
+}
+
+async function initFivemServerMonitor() {
+  const config = document.getElementById('fivem-config-link');
+  const joinCode = (config && config.dataset.joinCode ? config.dataset.joinCode : 'xeodpe').trim().toLowerCase();
+  const players = document.getElementById('fivem-players-count');
+  const banner = document.getElementById('fivem-dynamic-banner');
+  const tagsContainer = document.getElementById('fivem-dynamic-tags');
+  const statusBadge = document.getElementById('fivem-status-indicator');
+  const navCounter = document.getElementById('nav-player-counter');
+  const description = document.getElementById('fivem-dynamic-desc');
+  const targetUrl = `https://servers-frontend.fivem.net/api/servers/single/${encodeURIComponent(joinCode)}`;
+  const server = await requestFivemServer(targetUrl);
+
+  if (!server) {
+    setRichStatus(navCounter, { value: `Join: ${joinCode.toUpperCase()}` });
+    setRichStatus(players, {
+      icon: '🎮',
+      value: `cfx.re/join/${joinCode}`,
+      label: 'Server link'
+    });
+
+    if (statusBadge) {
+      statusBadge.classList.add('status-unknown');
+      setRichStatus(statusBadge, {
+        value: 'STATUS UNAVAILABLE',
+        label: `— Join code ${joinCode.toUpperCase()}`
+      });
+    }
+    return;
+  }
+
+  const onlineCount = Number(server.clients);
+  const maxCount = Number(server.sv_maxclients);
+  const hasPlayerCount = Number.isFinite(onlineCount) && onlineCount >= 0;
+  const hasMaxCount = Number.isFinite(maxCount) && maxCount > 0;
+
+  if (hasPlayerCount) {
+    const countLabel = hasMaxCount ? `${onlineCount} / ${maxCount}` : String(onlineCount);
+    setRichStatus(navCounter, { value: countLabel, label: 'Citizens Online' });
+    setRichStatus(players, { icon: '🎮', value: countLabel, label: 'Citizens Playing Live' });
+
+    if (statusBadge) {
+      statusBadge.classList.remove('status-unknown');
+      const pulse = document.createElement('span');
+      pulse.className = 'pulse-circle';
+      pulse.setAttribute('aria-hidden', 'true');
+      const text = document.createTextNode(' ONLINE — ');
+      const strong = document.createElement('strong');
+      strong.textContent = `${onlineCount} ${onlineCount === 1 ? 'Player' : 'Players'}`;
+      const suffix = document.createTextNode(' Active In City');
+      statusBadge.replaceChildren(pulse, text, strong, suffix);
+    }
+  }
+
+  const bannerUrl = safeExternalUrl(server.vars && (server.vars.banner_detail || server.vars.banner_connecting));
+  if (banner && bannerUrl) {
+    banner.src = bannerUrl;
+    banner.style.display = 'block';
+    if (banner.parentElement) banner.parentElement.classList.add('has-dynamic-banner');
+  }
+
+  if (tagsContainer && server.vars && typeof server.vars.tags === 'string') {
+    const tagList = server.vars.tags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .slice(0, 6);
+
+    const tagNodes = tagList.map((tag) => {
+      const badge = document.createElement('span');
+      badge.className = 'server-tag-badge';
+      badge.textContent = `#${tag}`;
+      return badge;
+    });
+    tagsContainer.replaceChildren(...tagNodes);
+  }
+
+  if (description && server.vars && typeof server.vars.sv_projectDesc === 'string') {
+    description.textContent = server.vars.sv_projectDesc;
+  }
+}
+
+function animateValue(element, start, end, duration, label, icon = '🟢') {
+  if (!element) return;
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reducedMotion || duration <= 0) {
+    setRichStatus(element, { icon, value: end, label });
+    return;
+  }
+
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (startTimestamp === null) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    const currentValue = Math.floor(progress * (end - start) + start);
+    setRichStatus(element, { icon, value: currentValue, label });
+    if (progress < 1) window.requestAnimationFrame(step);
+  };
+
+  window.requestAnimationFrame(step);
+}
+
+function initConnectButton() {
+  const buttons = document.querySelectorAll('.js-connect-btn');
+  const config = document.getElementById('fivem-config-link');
+  const joinLink = config && config.dataset.joinLink ? config.dataset.joinLink : 'cfx.re/join/xeodpe';
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', async (event) => {
+      try {
+        if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+      } catch (error) {
+        // Vibration is an optional enhancement.
+      }
+
+      if (button.dataset.copyOnly === 'true') {
+        event.preventDefault();
+        try {
+          await copyText(joinLink);
+          showNotification(`🎮 Copied connect address: ${joinLink}`);
+        } catch (error) {
+          showNotification(`🚀 Direct connect: ${joinLink}`);
+        }
+      } else {
+        showNotification('🔥 Opening the MTL City Rp FiveM join page.');
+      }
+    });
   });
 }
 
-/**
- * Mobile Hamburger Navigation & Slide-out Drawer Controller
- */
+function normalizePath(pathname) {
+  const decoded = decodeURIComponent(pathname || '/').replace(/\/+/g, '/');
+  if (decoded.endsWith('/index.html')) return decoded.slice(0, -10) || '/';
+  return decoded.length > 1 ? decoded.replace(/\/+$/, '') : '/';
+}
+
+function initSmoothNavigation() {
+  const navLinks = [...document.querySelectorAll('.nav-link')];
+
+  const updateActiveLink = () => {
+    const canonical = document.querySelector('link[rel="canonical"]');
+    const current = new URL(canonical && canonical.href ? canonical.href : window.location.href, window.location.href);
+    current.hash = window.location.hash;
+    const currentPath = normalizePath(current.pathname);
+
+    navLinks.forEach((link) => {
+      let isActive = false;
+
+      try {
+        const destination = new URL(link.href, current.href);
+        const sameDocumentPath = destination.origin === current.origin && normalizePath(destination.pathname) === currentPath;
+
+        if (sameDocumentPath) {
+          isActive = destination.hash ? destination.hash === current.hash : current.hash === '';
+        }
+      } catch (error) {
+        isActive = false;
+      }
+
+      link.classList.toggle('active', isActive);
+      if (isActive) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+  };
+
+  updateActiveLink();
+  window.addEventListener('hashchange', updateActiveLink);
+}
+
 function initMobileNav() {
-  const toggleBtn = document.getElementById('mobile-nav-toggle');
+  const toggleButton = document.getElementById('mobile-nav-toggle');
   const navMenu = document.getElementById('main-navigation');
   const overlay = document.getElementById('nav-overlay');
-  const navLinks = document.querySelectorAll('#main-navigation .nav-link, #main-navigation .btn-connect');
+  if (!toggleButton || !navMenu || !overlay) return;
 
-  if (!toggleBtn || !navMenu || !overlay) return;
+  const getFocusable = () => [
+    toggleButton,
+    ...navMenu.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+  ].filter((item) => item.offsetParent !== null);
 
-  const toggleMenu = () => {
-    const isOpen = toggleBtn.classList.toggle('is-active');
-    navMenu.classList.toggle('is-open', isOpen);
-    overlay.classList.toggle('show', isOpen);
-    document.body.style.overflow = isOpen ? 'hidden' : '';
-    toggleBtn.setAttribute('aria-expanded', isOpen);
+  const closeMenu = ({ restoreFocus = false } = {}) => {
+    toggleButton.classList.remove('is-active');
+    navMenu.classList.remove('is-open');
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('nav-open');
+    document.body.style.overflow = '';
+    toggleButton.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) toggleButton.focus();
   };
 
-  toggleBtn.addEventListener('click', toggleMenu);
-  overlay.addEventListener('click', toggleMenu);
+  const openMenu = () => {
+    toggleButton.classList.add('is-active');
+    navMenu.classList.add('is-open');
+    overlay.classList.add('show');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('nav-open');
+    document.body.style.overflow = 'hidden';
+    toggleButton.setAttribute('aria-expanded', 'true');
 
-  navLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      if (navMenu.classList.contains('is-open')) {
-        toggleMenu();
-      }
-    });
+    const firstLink = navMenu.querySelector('a[href], button:not([disabled])');
+    if (firstLink) window.requestAnimationFrame(() => firstLink.focus());
+  };
+
+  toggleButton.addEventListener('click', () => {
+    if (navMenu.classList.contains('is-open')) closeMenu();
+    else openMenu();
   });
-}
 
-/**
- * Interactive Back-to-Top Floating Button Controller
- */
-function initBackToTop() {
-  const topBtn = document.getElementById('back-to-top-btn');
-  if (!topBtn) return;
+  overlay.addEventListener('click', () => closeMenu({ restoreFocus: true }));
 
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 350) {
-      topBtn.classList.add('visible');
-    } else {
-      topBtn.classList.remove('visible');
+  navMenu.querySelectorAll('a[href]').forEach((link) => {
+    link.addEventListener('click', () => closeMenu());
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (!navMenu.classList.contains('is-open')) return;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeMenu({ restoreFocus: true });
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+    const focusable = getFocusable();
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
     }
   });
 
-  topBtn.addEventListener('click', () => {
-    try { if (navigator.vibrate) navigator.vibrate(20); } catch (err) {}
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 991 && navMenu.classList.contains('is-open')) closeMenu();
+  });
+}
+
+function initBackToTop() {
+  const topButton = document.getElementById('back-to-top-btn');
+  if (!topButton) return;
+
+  const updateVisibility = () => {
+    topButton.classList.toggle('visible', window.scrollY > 350);
+  };
+
+  updateVisibility();
+  window.addEventListener('scroll', updateVisibility, { passive: true });
+  topButton.addEventListener('click', () => {
+    try {
+      if (navigator.vibrate) navigator.vibrate(20);
+    } catch (error) {
+      // Vibration is an optional enhancement.
+    }
+
     window.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
     });
   });
 }
 
-/**
- * Touchscreen & Mobile Gestures Support
- */
 function initTouchEnhancements() {
-  const touchCards = document.querySelectorAll('.feature-card, .team-card, .server-status-card, .btn-connect');
-  touchCards.forEach(card => {
-    card.addEventListener('touchstart', () => {
-      card.classList.add('touch-active');
-    }, { passive: true });
+  document.querySelectorAll('.feature-card, .team-card, .server-status-card, .btn-connect').forEach((card) => {
+    card.addEventListener('touchstart', () => card.classList.add('touch-active'), { passive: true });
     card.addEventListener('touchend', () => {
-      setTimeout(() => card.classList.remove('touch-active'), 300);
+      window.setTimeout(() => card.classList.remove('touch-active'), 300);
     }, { passive: true });
+    card.addEventListener('touchcancel', () => card.classList.remove('touch-active'), { passive: true });
   });
 }
 
-/**
- * Handles opening and populating the Citizen Profile Dossier Modal
- * allowing team members to easily showcase their bios, roles, and verified links!
- * Also applies referrer protection to allow external Discord CDN attachments to load cleanly.
- */
 function initCitizenBioModals() {
-  const modalOverlay = document.getElementById('citizen-bio-modal');
-  const closeBtn = document.getElementById('close-bio-modal');
+  const modal = document.getElementById('citizen-bio-modal');
+  const closeButton = document.getElementById('close-bio-modal');
   const cards = document.querySelectorAll('.js-bio-card');
+  if (!modal) return;
 
-  if (!modalOverlay) return;
-
-  const nameEl = document.getElementById('modal-bio-name');
-  const rankEl = document.getElementById('modal-bio-rank');
-  const imgEl = document.getElementById('modal-bio-image');
-  const textEl = document.getElementById('modal-bio-text');
+  const modalCard = modal.querySelector('.bio-modal-card');
+  const name = document.getElementById('modal-bio-name');
+  const rank = document.getElementById('modal-bio-rank');
+  const image = document.getElementById('modal-bio-image');
+  const text = document.getElementById('modal-bio-text');
   const linksContainer = document.getElementById('modal-links-container');
   const linksGrid = document.getElementById('modal-bio-links');
+  let previouslyFocused = null;
 
-  const openModal = (card) => {
-    const name = card.getAttribute('data-name') || "Unknown Citizen";
-    const rank = card.getAttribute('data-rank') || "Citizen";
-    const rankClass = card.getAttribute('data-rank-class') || "";
-    const image = card.getAttribute('data-image') || "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png";
-    const bio = card.getAttribute('data-bio') || "No dossier details available.";
-    const linksJson = card.getAttribute('data-links') || "[]";
-
-    // Populate header & text
-    if (nameEl) nameEl.textContent = name;
-    if (rankEl) {
-      rankEl.textContent = rank;
-      rankEl.className = `rank-badge ${rankClass}`;
-    }
-    if (imgEl) {
-      imgEl.setAttribute('referrerpolicy', 'no-referrer');
-      imgEl.src = image;
-      imgEl.onerror = () => { imgEl.src = "https://forum.cfx.re/user_avatar/forum.cfx.re/mtl-scripts/144/6303083_2.png"; };
-    }
-    if (textEl) textEl.textContent = bio;
-
-    // Populate verified links
-    if (linksContainer && linksGrid) {
-      try {
-        const links = JSON.parse(linksJson);
-        if (Array.isArray(links) && links.length > 0) {
-          linksGrid.innerHTML = links.map(link => `
-            <a href="${link.url || '#'}" target="_blank" rel="noopener noreferrer" class="bio-social-link">
-              <span class="bio-link-icon">${link.icon || '🔗'}</span>
-              <span class="bio-link-text">${link.label || link.name || 'External Link'}</span>
-              <span class="bio-link-arrow">&rarr;</span>
-            </a>
-          `).join("");
-          linksContainer.style.display = "block";
-        } else {
-          linksContainer.style.display = "none";
-        }
-      } catch (e) {
-        console.warn("Could not parse citizen links JSON:", e);
-        linksContainer.style.display = "none";
-      }
-    }
-
-    // Reveal modal with smooth glassmorphic transition
-    modalOverlay.classList.add('is-open');
-    modalOverlay.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-
-    try { if (navigator.vibrate) navigator.vibrate(20); } catch (err) {}
-  };
-
-  const closeModal = () => {
-    modalOverlay.classList.remove('is-open');
-    modalOverlay.setAttribute('aria-hidden', 'true');
+  const closeModal = ({ restoreFocus = true } = {}) => {
+    if (!modal.classList.contains('is-open')) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('inert', '');
     document.body.style.overflow = '';
+
+    if (restoreFocus && previouslyFocused && typeof previouslyFocused.focus === 'function') {
+      previouslyFocused.focus();
+    }
+    previouslyFocused = null;
   };
 
-  cards.forEach(card => {
-    card.addEventListener('click', (e) => {
-      // Prevent opening modal if they clicked an existing direct link inside card
-      if (e.target.tagName.toLowerCase() === 'a' || e.target.closest('a')) return;
-      openModal(card);
+  const openModal = (profile, trigger = document.activeElement) => {
+    previouslyFocused = trigger instanceof HTMLElement ? trigger : document.activeElement;
+
+    if (name) name.textContent = String(profile.name || 'Unknown Citizen');
+    if (rank) {
+      rank.textContent = String(profile.rank || 'Citizen');
+      const safeRankClass = String(profile.rankClass || '').replace(/[^a-zA-Z0-9_-]/g, '');
+      rank.className = `rank-badge${safeRankClass ? ` ${safeRankClass}` : ''}`;
+    }
+    setImageSource(image, profile.image);
+    if (text) text.textContent = String(profile.bio || profile.aboutMe || profile.snippet || 'No dossier details available.');
+
+    if (linksContainer && linksGrid) {
+      const renderedCount = renderBioLinks(linksGrid, profile.links);
+      linksContainer.style.display = renderedCount > 0 ? 'block' : 'none';
+    }
+
+    modal.removeAttribute('inert');
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    window.requestAnimationFrame(() => (closeButton || modalCard || modal).focus());
+
+    try {
+      if (navigator.vibrate) navigator.vibrate(20);
+    } catch (error) {
+      // Vibration is an optional enhancement.
+    }
+  };
+
+  window.openCitizenBioModal = openModal;
+  window.closeCitizenBioModal = closeModal;
+
+  cards.forEach((card) => {
+    const profileFromCard = () => {
+      let links = [];
+      try {
+        const parsed = JSON.parse(card.dataset.links || '[]');
+        if (Array.isArray(parsed)) links = parsed;
+      } catch (error) {
+        console.warn('Could not parse citizen links JSON.', error);
+      }
+
+      return {
+        name: card.dataset.name,
+        rank: card.dataset.rank,
+        rankClass: card.dataset.rankClass,
+        image: card.dataset.image,
+        bio: card.dataset.bio,
+        links
+      };
+    };
+
+    card.addEventListener('click', (event) => {
+      if (event.target.closest('a')) return;
+      const focusReturnTarget = event.target.closest('.btn-bio-trigger') || card.querySelector('.btn-bio-trigger');
+      openModal(profileFromCard(), focusReturnTarget);
     });
+
   });
 
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (closeButton) closeButton.addEventListener('click', () => closeModal());
 
-  modalOverlay.addEventListener('click', (e) => {
-    if (e.target === modalOverlay) closeModal();
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) closeModal();
   });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modalOverlay.classList.contains('is-open')) {
+  const discordButton = modal.querySelector('.bio-discord-btn');
+  if (discordButton) discordButton.addEventListener('click', () => closeModal({ restoreFocus: false }));
+
+  document.addEventListener('keydown', (event) => {
+    if (!modal.classList.contains('is-open')) return;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
       closeModal();
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+    const focusable = [...modal.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+      .filter((element) => element.offsetParent !== null);
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
     }
   });
 }
+})();

@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # Official GitHub Pages gems & Jekyll environment
-gem "github-pages", "~> 228", group: :jekyll_plugins
+gem "github-pages", "~> 232", group: :jekyll_plugins
 gem "jekyll-feed", "~> 0.12"
 gem "jekyll-seo-tag", "~> 2.8"
 

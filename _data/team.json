@@ -77,7 +77,7 @@
   },
   {
     "name": "Floorified",
-    "image": "https://cdn.discordapp.com/attachments/1499105211090997339/1524598598191288441/7436D01C-D3EE-4EAF-8A0A-CE429B8EBFD5.png?ex=6a70a157&is=6a6f4fd7&hm=31958f60d1e4468ec2f00d9aa8a2e516be09b9638261e747abab52a6553c2dd1&",
+    "image": "assets/images/default-avatar.svg",
     "rank": "Developer",
     "snippet": "Core Systems Developer & Frontend Integration Lead.",
     "aboutMe": "Specializing in visual user experiences, custom inventory management frameworks, and responsive script designs.",
