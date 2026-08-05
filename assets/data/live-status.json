@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "generated_at": null,
+  "discord": {
+    "available": false,
+    "live": false,
+    "name": "",
+    "presence_count": null,
+    "fetched_at": null,
+    "error": "Status snapshot has not been generated yet."
+  },
+  "fivem": {
+    "available": false,
+    "live": false,
+    "join_code": "xeodpe",
+    "clients": null,
+    "max_clients": null,
+    "hostname": "",
+    "project_name": "",
+    "project_description": "",
+    "tags": [],
+    "banner_url": "",
+    "fetched_at": null,
+    "error": "Status snapshot has not been generated yet."
+  }
+}

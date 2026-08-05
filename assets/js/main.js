@@ -1,10 +1,15 @@
 /**
- * MTL City Rp - interactive controls and live status integrations.
+ * MTL City Rp - interactive controls and resilient live status integrations.
  */
 'use strict';
 
 (() => {
 const FALLBACK_AVATAR = document.body.dataset.fallbackAvatar || 'assets/images/default-avatar.svg';
+const LIVE_STATE = {
+  refreshTimer: null,
+  lastRefreshAt: 0,
+  activeRefresh: null
+};
 
 function safeExternalUrl(rawValue) {
   if (typeof rawValue !== 'string' || !rawValue.trim()) return null;
@@ -35,14 +40,21 @@ async function fetchJson(url, timeoutMs = 6500) {
   try {
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: { Accept: 'application/json' }
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer'
     });
 
     if (!response.ok) {
       throw new Error(`Request failed with status ${response.status}`);
     }
 
-    return await response.json();
+    const payload = await response.json();
+    if (!payload || typeof payload !== 'object') {
+      throw new Error('The response was not a JSON object.');
+    }
+    return payload;
   } finally {
     window.clearTimeout(timeoutId);
   }
@@ -179,9 +191,341 @@ function showNotification(message) {
 
 window.showNotification = showNotification;
 
+function getLiveApiConfig() {
+  const element = document.getElementById('live-api-config');
+  const refreshValue = Number(element && element.dataset.refreshMs);
+  const maxSnapshotAgeValue = Number(element && element.dataset.maxSnapshotAgeMs);
+  return {
+    discordId: String((element && element.dataset.discordId) || '').trim(),
+    joinCode: String((element && element.dataset.joinCode) || 'xeodpe').trim().toLowerCase(),
+    joinLink: String((element && element.dataset.joinLink) || 'cfx.re/join/xeodpe').trim(),
+    snapshotUrl: String((element && element.dataset.snapshotUrl) || 'assets/data/live-status.json').trim(),
+    apiProxyUrl: String((element && element.dataset.apiProxyUrl) || '').trim(),
+    refreshMs: Number.isFinite(refreshValue) ? Math.min(Math.max(refreshValue, 30000), 900000) : 60000,
+    maxSnapshotAgeMs: Number.isFinite(maxSnapshotAgeValue)
+      ? Math.min(Math.max(maxSnapshotAgeValue, 300000), 86400000)
+      : 21600000
+  };
+}
+
+function buildProxyUrl(baseUrl, target, values) {
+  const safeBase = safeExternalUrl(baseUrl);
+  if (!safeBase) return null;
+
+  const url = new URL(safeBase);
+  url.searchParams.set('target', target);
+  Object.entries(values).forEach(([key, value]) => {
+    if (value) url.searchParams.set(key, value);
+  });
+  return url.href;
+}
+
+function formatStatusTime(rawValue) {
+  if (!rawValue) return '';
+  const date = new Date(rawValue);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  }).format(date);
+}
+
+function isSnapshotFresh(rawValue, maxAgeMs) {
+  if (!rawValue) return false;
+  const timestamp = new Date(rawValue).getTime();
+  if (!Number.isFinite(timestamp)) return false;
+
+  const age = Date.now() - timestamp;
+  return age >= -300000 && age <= maxAgeMs;
+}
+
+function updateSourceLabel(element, source, updatedAt) {
+  if (!element) return;
+  element.classList.remove('is-live', 'is-cached', 'is-unavailable');
+
+  if (source === 'live') {
+    element.classList.add('is-live');
+    element.textContent = 'Live API';
+    return;
+  }
+
+  if (source === 'snapshot') {
+    element.classList.add('is-cached');
+    const formatted = formatStatusTime(updatedAt);
+    element.textContent = formatted ? `Cached ${formatted}` : 'Cached status';
+    return;
+  }
+
+  element.classList.add('is-unavailable');
+  element.textContent = 'Status unavailable';
+}
+
+async function loadSnapshot(config) {
+  try {
+    const snapshot = await fetchJson(config.snapshotUrl, 4500);
+    if (snapshot.version !== 1 || typeof snapshot.generated_at !== 'string') {
+      throw new Error('The live-status snapshot has an unsupported format.');
+    }
+    return snapshot;
+  } catch (error) {
+    console.warn('The same-origin live-status snapshot is unavailable.', error);
+    return null;
+  }
+}
+
+function normalizeDiscordPayload(payload) {
+  if (!payload || typeof payload !== 'object') return null;
+  const presenceCount = Number(payload.presence_count);
+  if (!Number.isFinite(presenceCount) || presenceCount < 0) return null;
+
+  return {
+    name: typeof payload.name === 'string' ? payload.name.trim() : '',
+    presenceCount
+  };
+}
+
+async function requestDiscordStatus(config, snapshotPromise) {
+  if (!config.discordId) return null;
+
+  const directUrl = `https://discord.com/api/guilds/${encodeURIComponent(config.discordId)}/widget.json`;
+  const proxyUrl = buildProxyUrl(config.apiProxyUrl, 'discord', { guild_id: config.discordId });
+  const requestUrls = [proxyUrl, directUrl].filter(Boolean);
+
+  for (const requestUrl of requestUrls) {
+    try {
+      const normalized = normalizeDiscordPayload(await fetchJson(requestUrl, 6000));
+      if (normalized) return { ...normalized, source: 'live', updatedAt: new Date().toISOString() };
+    } catch (error) {
+      console.warn('A Discord live-status source was unavailable.', error);
+    }
+  }
+
+  const snapshot = await snapshotPromise;
+  const cached = snapshot && snapshot.discord;
+  const updatedAt = cached && (cached.fetched_at || snapshot.generated_at || '');
+  if (cached && cached.available === true && Number.isFinite(Number(cached.presence_count)) &&
+      isSnapshotFresh(updatedAt, config.maxSnapshotAgeMs)) {
+    return {
+      name: String(cached.name || ''),
+      presenceCount: Number(cached.presence_count),
+      source: 'snapshot',
+      verified: cached.live === true,
+      updatedAt
+    };
+  }
+
+  return null;
+}
+
+async function updateDiscordStatus(config, snapshotPromise) {
+  const onlineCount = document.getElementById('discord-online-count');
+  const serverTitle = document.getElementById('discord-server-title');
+  const sourceLabel = document.getElementById('discord-data-source');
+  if (!onlineCount && !serverTitle && !sourceLabel) return;
+
+  const status = await requestDiscordStatus(config, snapshotPromise);
+  if (!status) {
+    setRichStatus(onlineCount, { icon: '⚠️', value: 'Unavailable', label: 'Enable the Discord Server Widget' });
+    updateSourceLabel(sourceLabel, 'unavailable');
+    return;
+  }
+
+  if (serverTitle && status.name) serverTitle.textContent = status.name;
+  const discordLabel = status.source === 'live' ? 'Active Citizens Online in Discord' : 'Citizens in Latest Discord Check';
+  animateValue(onlineCount, 0, status.presenceCount, 900, discordLabel, '💬');
+  updateSourceLabel(sourceLabel, status.source, status.updatedAt);
+}
+
+function normalizeFivemPayload(payload) {
+  const server = payload && payload.Data && typeof payload.Data === 'object' ? payload.Data : payload;
+  if (!server || typeof server !== 'object') return null;
+
+  const clients = Number(server.clients);
+  if (!Number.isFinite(clients) || clients < 0) return null;
+  return server;
+}
+
+async function requestFivemStatus(config, snapshotPromise) {
+  const targetUrl = `https://servers-frontend.fivem.net/api/servers/single/${encodeURIComponent(config.joinCode)}`;
+  const proxyUrl = buildProxyUrl(config.apiProxyUrl, 'fivem', { join_code: config.joinCode });
+  const requestUrls = [proxyUrl, targetUrl].filter(Boolean);
+
+  for (const requestUrl of requestUrls) {
+    try {
+      const server = normalizeFivemPayload(await fetchJson(requestUrl, 6000));
+      if (server) return { server, source: 'live', updatedAt: new Date().toISOString() };
+    } catch (error) {
+      console.warn('A FiveM live-status source was unavailable.', error);
+    }
+  }
+
+  const snapshot = await snapshotPromise;
+  const cached = snapshot && snapshot.fivem;
+  const updatedAt = cached && (cached.fetched_at || snapshot.generated_at || '');
+  if (cached && cached.available === true && Number.isFinite(Number(cached.clients)) &&
+      isSnapshotFresh(updatedAt, config.maxSnapshotAgeMs)) {
+    return {
+      server: {
+        clients: Number(cached.clients),
+        sv_maxclients: Number(cached.max_clients),
+        hostname: cached.hostname || '',
+        vars: {
+          sv_projectName: cached.project_name || '',
+          sv_projectDesc: cached.project_description || '',
+          tags: Array.isArray(cached.tags) ? cached.tags.join(',') : '',
+          banner_detail: cached.banner_url || ''
+        }
+      },
+      source: 'snapshot',
+      verified: cached.live === true,
+      updatedAt
+    };
+  }
+
+  return null;
+}
+
+function renderFivemStatus(config, result) {
+  const players = document.getElementById('fivem-players-count');
+  const banner = document.getElementById('fivem-dynamic-banner');
+  const tagsContainer = document.getElementById('fivem-dynamic-tags');
+  const statusBadge = document.getElementById('fivem-status-indicator');
+  const navCounter = document.getElementById('nav-player-counter');
+  const description = document.getElementById('fivem-dynamic-desc');
+  const serverName = document.getElementById('fivem-server-name');
+  const sourceLabel = document.getElementById('fivem-data-source');
+  const statusCard = banner && banner.closest('.server-status-card');
+
+  if (!result) {
+    setRichStatus(navCounter, { value: `Join: ${config.joinCode.toUpperCase()}` });
+    setRichStatus(players, { icon: '🎮', value: config.joinLink, label: 'Direct connect' });
+    updateSourceLabel(sourceLabel, 'unavailable');
+
+    if (statusBadge) {
+      statusBadge.classList.remove('status-cached');
+      statusBadge.classList.add('status-unknown');
+      setRichStatus(statusBadge, { value: 'STATUS UNAVAILABLE', label: `— Join code ${config.joinCode.toUpperCase()}` });
+    }
+    return;
+  }
+
+  const { server, source, updatedAt, verified = true } = result;
+  const onlineCount = Number(server.clients);
+  const maxCount = Number(server.sv_maxclients);
+  const hasMaxCount = Number.isFinite(maxCount) && maxCount > 0;
+  const countLabel = hasMaxCount ? `${onlineCount} / ${maxCount}` : String(onlineCount);
+  const countDescription = source === 'live' ? 'Citizens Online' : 'Citizens in Latest Check';
+  setRichStatus(navCounter, { value: countLabel, label: countDescription });
+  setRichStatus(players, { icon: '🎮', value: countLabel, label: countDescription });
+  updateSourceLabel(sourceLabel, source, updatedAt);
+
+  if (statusBadge) {
+    statusBadge.classList.remove('status-unknown', 'status-cached');
+    const pulse = document.createElement('span');
+    pulse.className = 'pulse-circle';
+    pulse.setAttribute('aria-hidden', 'true');
+    const strong = document.createElement('strong');
+    strong.textContent = `${onlineCount} ${onlineCount === 1 ? 'Player' : 'Players'}`;
+
+    if (source === 'snapshot') {
+      statusBadge.classList.add('status-cached');
+      const formatted = formatStatusTime(updatedAt);
+      const prefix = document.createTextNode(verified ? ' LAST CHECK — ' : ' LAST KNOWN — ');
+      const suffix = document.createTextNode(formatted ? ` at ${formatted}` : ' from the latest snapshot');
+      statusBadge.replaceChildren(pulse, prefix, strong, suffix);
+    } else {
+      const prefix = document.createTextNode(' ONLINE — ');
+      const suffix = document.createTextNode(' Active In City');
+      statusBadge.replaceChildren(pulse, prefix, strong, suffix);
+    }
+  }
+
+  const vars = server.vars && typeof server.vars === 'object' ? server.vars : {};
+  const displayName = String(vars.sv_projectName || server.hostname || '').trim();
+  if (serverName && displayName) serverName.textContent = displayName;
+
+  const bannerUrl = safeExternalUrl(vars.banner_detail || vars.banner_connecting);
+  if (banner && bannerUrl) {
+    banner.onerror = () => {
+      if (statusCard) statusCard.classList.remove('has-dynamic-banner');
+    };
+    banner.src = bannerUrl;
+    if (statusCard) statusCard.classList.add('has-dynamic-banner');
+  } else if (statusCard) {
+    statusCard.classList.remove('has-dynamic-banner');
+  }
+
+  if (tagsContainer && typeof vars.tags === 'string') {
+    const tagList = vars.tags.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 8);
+    if (tagList.length) {
+      const tagNodes = tagList.map((tag) => {
+        const badge = document.createElement('span');
+        badge.className = 'server-tag-badge';
+        badge.textContent = `#${tag}`;
+        return badge;
+      });
+      tagsContainer.replaceChildren(...tagNodes);
+    }
+  }
+
+  if (description && typeof vars.sv_projectDesc === 'string' && vars.sv_projectDesc.trim()) {
+    description.textContent = vars.sv_projectDesc.trim();
+  }
+}
+
+async function refreshLiveStatus({ announce = false } = {}) {
+  if (LIVE_STATE.activeRefresh) return LIVE_STATE.activeRefresh;
+
+  const config = getLiveApiConfig();
+  const refreshButton = document.getElementById('refresh-live-status');
+  if (refreshButton) {
+    refreshButton.disabled = true;
+    refreshButton.setAttribute('aria-busy', 'true');
+  }
+
+  LIVE_STATE.activeRefresh = (async () => {
+    const snapshotPromise = loadSnapshot(config);
+    await Promise.all([
+      updateDiscordStatus(config, snapshotPromise),
+      requestFivemStatus(config, snapshotPromise).then((result) => renderFivemStatus(config, result))
+    ]);
+    LIVE_STATE.lastRefreshAt = Date.now();
+    if (announce) showNotification('Live server information refreshed.');
+  })();
+
+  try {
+    await LIVE_STATE.activeRefresh;
+  } finally {
+    LIVE_STATE.activeRefresh = null;
+    if (refreshButton) {
+      refreshButton.disabled = false;
+      refreshButton.removeAttribute('aria-busy');
+    }
+  }
+}
+
+function initLiveStatus() {
+  const config = getLiveApiConfig();
+  refreshLiveStatus();
+
+  const refreshButton = document.getElementById('refresh-live-status');
+  if (refreshButton) refreshButton.addEventListener('click', () => refreshLiveStatus({ announce: true }));
+
+  LIVE_STATE.refreshTimer = window.setInterval(() => {
+    if (document.visibilityState === 'visible') refreshLiveStatus();
+  }, config.refreshMs);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && Date.now() - LIVE_STATE.lastRefreshAt > config.refreshMs) {
+      refreshLiveStatus();
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  initDiscordLiveStats();
-  initFivemServerMonitor();
+  initLiveStatus();
   initConnectButton();
   initSmoothNavigation();
   initMobileNav();
@@ -189,137 +533,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initTouchEnhancements();
   initCitizenBioModals();
 });
-
-async function initDiscordLiveStats() {
-  const config = document.getElementById('discord-config-id');
-  if (!config) return;
-
-  const serverId = config.dataset.discordId;
-  if (!serverId) return;
-
-  const onlineCount = document.getElementById('discord-online-count');
-  const serverTitle = document.getElementById('discord-server-title');
-
-  try {
-    const data = await fetchJson(`https://discord.com/api/guilds/${encodeURIComponent(serverId)}/widget.json`);
-
-    if (serverTitle && typeof data.name === 'string' && data.name.trim()) {
-      serverTitle.textContent = data.name.trim();
-    }
-
-    const presenceCount = Number(data.presence_count);
-    if (onlineCount && Number.isFinite(presenceCount) && presenceCount >= 0) {
-      animateValue(onlineCount, 0, presenceCount, 1200, 'Active Citizens Online in Discord', '💬');
-    }
-  } catch (error) {
-    console.warn('Discord community status is temporarily unavailable.', error);
-    setRichStatus(onlineCount, {
-      icon: '💬',
-      value: 'Live',
-      label: 'Community Hub'
-    });
-  }
-}
-
-async function requestFivemServer(targetUrl) {
-  const requestUrls = [
-    targetUrl,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
-    `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`
-  ];
-
-  for (const requestUrl of requestUrls) {
-    try {
-      const payload = await fetchJson(requestUrl, 5500);
-      if (payload && payload.Data && typeof payload.Data === 'object') return payload.Data;
-    } catch (error) {
-      console.warn('FiveM status source was unavailable; trying the next source.', error);
-    }
-  }
-
-  return null;
-}
-
-async function initFivemServerMonitor() {
-  const config = document.getElementById('fivem-config-link');
-  const joinCode = (config && config.dataset.joinCode ? config.dataset.joinCode : 'xeodpe').trim().toLowerCase();
-  const players = document.getElementById('fivem-players-count');
-  const banner = document.getElementById('fivem-dynamic-banner');
-  const tagsContainer = document.getElementById('fivem-dynamic-tags');
-  const statusBadge = document.getElementById('fivem-status-indicator');
-  const navCounter = document.getElementById('nav-player-counter');
-  const description = document.getElementById('fivem-dynamic-desc');
-  const targetUrl = `https://servers-frontend.fivem.net/api/servers/single/${encodeURIComponent(joinCode)}`;
-  const server = await requestFivemServer(targetUrl);
-
-  if (!server) {
-    setRichStatus(navCounter, { value: `Join: ${joinCode.toUpperCase()}` });
-    setRichStatus(players, {
-      icon: '🎮',
-      value: `cfx.re/join/${joinCode}`,
-      label: 'Server link'
-    });
-
-    if (statusBadge) {
-      statusBadge.classList.add('status-unknown');
-      setRichStatus(statusBadge, {
-        value: 'STATUS UNAVAILABLE',
-        label: `— Join code ${joinCode.toUpperCase()}`
-      });
-    }
-    return;
-  }
-
-  const onlineCount = Number(server.clients);
-  const maxCount = Number(server.sv_maxclients);
-  const hasPlayerCount = Number.isFinite(onlineCount) && onlineCount >= 0;
-  const hasMaxCount = Number.isFinite(maxCount) && maxCount > 0;
-
-  if (hasPlayerCount) {
-    const countLabel = hasMaxCount ? `${onlineCount} / ${maxCount}` : String(onlineCount);
-    setRichStatus(navCounter, { value: countLabel, label: 'Citizens Online' });
-    setRichStatus(players, { icon: '🎮', value: countLabel, label: 'Citizens Playing Live' });
-
-    if (statusBadge) {
-      statusBadge.classList.remove('status-unknown');
-      const pulse = document.createElement('span');
-      pulse.className = 'pulse-circle';
-      pulse.setAttribute('aria-hidden', 'true');
-      const text = document.createTextNode(' ONLINE — ');
-      const strong = document.createElement('strong');
-      strong.textContent = `${onlineCount} ${onlineCount === 1 ? 'Player' : 'Players'}`;
-      const suffix = document.createTextNode(' Active In City');
-      statusBadge.replaceChildren(pulse, text, strong, suffix);
-    }
-  }
-
-  const bannerUrl = safeExternalUrl(server.vars && (server.vars.banner_detail || server.vars.banner_connecting));
-  if (banner && bannerUrl) {
-    banner.src = bannerUrl;
-    banner.style.display = 'block';
-    if (banner.parentElement) banner.parentElement.classList.add('has-dynamic-banner');
-  }
-
-  if (tagsContainer && server.vars && typeof server.vars.tags === 'string') {
-    const tagList = server.vars.tags
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter(Boolean)
-      .slice(0, 6);
-
-    const tagNodes = tagList.map((tag) => {
-      const badge = document.createElement('span');
-      badge.className = 'server-tag-badge';
-      badge.textContent = `#${tag}`;
-      return badge;
-    });
-    tagsContainer.replaceChildren(...tagNodes);
-  }
-
-  if (description && server.vars && typeof server.vars.sv_projectDesc === 'string') {
-    description.textContent = server.vars.sv_projectDesc;
-  }
-}
 
 function animateValue(element, start, end, duration, label, icon = '🟢') {
   if (!element) return;
@@ -344,8 +557,8 @@ function animateValue(element, start, end, duration, label, icon = '🟢') {
 
 function initConnectButton() {
   const buttons = document.querySelectorAll('.js-connect-btn');
-  const config = document.getElementById('fivem-config-link');
-  const joinLink = config && config.dataset.joinLink ? config.dataset.joinLink : 'cfx.re/join/xeodpe';
+  const config = getLiveApiConfig();
+  const joinLink = config.joinLink || 'cfx.re/join/xeodpe';
 
   buttons.forEach((button) => {
     button.addEventListener('click', async (event) => {

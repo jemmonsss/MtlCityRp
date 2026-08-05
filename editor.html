@@ -116,6 +116,9 @@ noindex: true
         <button type="button" id="btn-copy-full" class="btn-secondary" style="width: 100%; justify-content: center; font-size: 0.92rem; padding: 14px;">
           📑 Copy Entire Updated team.json Array
         </button>
+        <button type="button" id="btn-download-full" class="btn-secondary" style="width: 100%; justify-content: center; font-size: 0.92rem; padding: 14px;">
+          ⬇️ Download Updated team.json
+        </button>
       </div>
     </div>
 
@@ -215,12 +218,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewModalBtn = document.getElementById('btn-preview-modal');
   const copyIndividualBtn = document.getElementById('btn-copy-individual');
   const copyFullBtn = document.getElementById('btn-copy-full');
+  const downloadFullBtn = document.getElementById('btn-download-full');
   const fallbackAvatar = document.body.dataset.fallbackAvatar || 'assets/images/default-avatar.svg';
   const standardRanks = ['Owner', 'Co Owner', 'Developer', 'Clothing Developer', 'Senior Lead', 'Community Support', 'Content Creator'];
 
   if (!selectEl || !nameInput || !rankSelect || !rankCustomInput || !imageInput || !avatarPreview ||
       !snippetInput || !aboutInput || !linksContainer || !jsonBox || !addLinkBtn ||
-      !previewModalBtn || !copyIndividualBtn || !copyFullBtn) {
+      !previewModalBtn || !copyIndividualBtn || !copyFullBtn || !downloadFullBtn) {
     console.error('The profile editor could not initialize because required controls are missing.');
     return;
   }
@@ -459,6 +463,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  downloadFullBtn.addEventListener('click', () => {
+    readLinksFromDOM();
+    updateJsonPreview();
+    const blob = new Blob([`${JSON.stringify(workingTeamArray, null, 2)}\n`], { type: 'application/json' });
+    const downloadUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = downloadUrl;
+    anchor.download = 'team.json';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+    notify('⬇️ Downloaded the updated team.json file.');
+  });
+
   previewModalBtn.addEventListener('click', () => {
     const person = workingTeamArray[currentSelectedIndex];
     if (!person) return;
@@ -484,6 +503,8 @@ document.addEventListener('DOMContentLoaded', () => {
     addLinkBtn.disabled = true;
     previewModalBtn.disabled = true;
     copyIndividualBtn.disabled = true;
+    copyFullBtn.disabled = true;
+    downloadFullBtn.disabled = true;
     jsonBox.textContent = 'No team records were found in _data/team.json.';
   }
 });

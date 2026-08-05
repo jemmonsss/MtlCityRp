@@ -37,6 +37,7 @@ title: "Home"
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; text-align: left;">
           <div>
             <span class="section-tag" style="margin-bottom: 4px;">Live FiveM Protocol ({{ site.fivem_join_link }})</span>
+            <h3 id="fivem-server-name" class="live-server-name">MTL City Rp</h3>
             <h3 id="fivem-players-count" aria-live="polite" style="font-size: 1.5rem; color: #fff; margin: 0;">
               🎮 Loading Realtime Citizen Count...
             </h3>
@@ -47,6 +48,11 @@ title: "Home"
           <a href="https://{{ site.fivem_join_link }}" class="btn-connect js-connect-btn" style="padding: 12px 28px;">
             🚀 Join City Now
           </a>
+        </div>
+
+        <div class="live-status-toolbar">
+          <span id="fivem-data-source" class="live-data-source" aria-live="polite">Checking live API…</span>
+          <button type="button" id="refresh-live-status" class="live-refresh-btn">↻ Refresh status</button>
         </div>
 
         <div id="fivem-dynamic-tags" style="margin-top: 16px; text-align: left;">

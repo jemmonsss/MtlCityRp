@@ -30,8 +30,15 @@
 <body data-fallback-avatar="{{ '/assets/images/default-avatar.svg' | relative_url }}">
   <a class="skip-link" href="#main-content">Skip to main content</a>
   <!-- Embedded Data IDs for JavaScript Live API integrations -->
-  <div id="discord-config-id" data-discord-id="{{ site.discord_server_id }}" style="display: none;"></div>
-  <div id="fivem-config-link" data-join-link="{{ site.fivem_join_link }}" data-join-code="{{ site.fivem_join_code }}" style="display: none;"></div>
+  <div id="live-api-config"
+       data-discord-id="{{ site.discord_server_id }}"
+       data-join-link="{{ site.fivem_join_link }}"
+       data-join-code="{{ site.fivem_join_code }}"
+       data-snapshot-url="{{ site.live_status_snapshot | relative_url }}"
+       data-refresh-ms="{{ site.live_status_refresh_ms }}"
+       data-max-snapshot-age-ms="{{ site.live_status_max_age_ms }}"
+       data-api-proxy-url="{{ site.api_proxy_url }}"
+       hidden></div>
 
   <!-- Site Navigation Header -->
   {% include header.html %}

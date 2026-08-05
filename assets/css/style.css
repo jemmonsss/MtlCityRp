@@ -310,6 +310,17 @@ a:hover {
   background: rgba(255, 180, 32, 0.1);
 }
 
+.status-badge.status-cached {
+  border-color: rgba(86, 176, 255, 0.55);
+  color: #b9dcff;
+  background: rgba(86, 176, 255, 0.1);
+}
+
+.status-badge.status-cached .pulse-circle {
+  background-color: #56b0ff;
+  box-shadow: 0 0 10px rgba(86, 176, 255, 0.85);
+}
+
 .pulse-circle {
   width: 10px;
   height: 10px;
@@ -1561,5 +1572,100 @@ a:hover {
     height: 46px;
     justify-content: center;
     padding: 0;
+  }
+}
+
+/* ========================================================================== 
+   Resilient API Status Controls
+   ========================================================================== */
+.live-server-name {
+  margin: 6px 0 4px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+}
+
+.live-status-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.live-data-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.live-data-source::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: #9a9aaa;
+  box-shadow: 0 0 8px rgba(154, 154, 170, 0.45);
+}
+
+.live-data-source.is-live::before {
+  background: #00e887;
+  box-shadow: 0 0 10px rgba(0, 232, 135, 0.7);
+}
+
+.live-data-source.is-cached::before {
+  background: #ffb420;
+  box-shadow: 0 0 10px rgba(255, 180, 32, 0.6);
+}
+
+.live-data-source.is-unavailable::before {
+  background: #ff5252;
+  box-shadow: 0 0 10px rgba(255, 82, 82, 0.65);
+}
+
+.live-refresh-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 8px 14px;
+  text-transform: uppercase;
+  transition: var(--transition-fast);
+}
+
+.live-refresh-btn:hover:not(:disabled) {
+  border-color: var(--accent-bright);
+  background: rgba(230, 0, 40, 0.16);
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+
+.live-refresh-btn:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.stat-item .live-data-source {
+  margin-top: 8px;
+}
+
+@media (max-width: 560px) {
+  .live-status-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
